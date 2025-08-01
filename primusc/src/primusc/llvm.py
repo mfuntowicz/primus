@@ -1,6 +1,10 @@
-import llvmlite.binding as llvm
+from typing import TYPE_CHECKING
 
+import llvmlite.binding as llvm
 from loguru import logger
+
+if TYPE_CHECKING:
+    from llvmlite.binding import ExecutionEngine
 
 def initialize_llvm():
     """
@@ -12,7 +16,7 @@ def initialize_llvm():
     llvm.initialize_native_asmprinter()
 
 
-def allocate_execution_engine(target: llvm.Target | None = None):
+def allocate_execution_engine(target: llvm.Target | None = None) -> "ExecutionEngine":
     """
 
     :param target:

@@ -1,7 +1,7 @@
 from pathlib import Path
-from typing import Self
+from typing import Self, TYPE_CHECKING
 
-from llvmlite.binding import Target as LlvmTarget
+from llvmlite.binding import Target as LlvmTarget, parse_assembly as parse_llvm_assembly
 from loguru import logger
 from mlir.ir import Context as MlirContext, Module as MlirModule
 from mlir.passmanager import PassManager
@@ -9,6 +9,10 @@ from mlir.passmanager import PassManager
 
 from .devices import Device
 from .llvm import allocate_execution_engine, initialize_llvm
+from .passes import with_llvm_lowering_passes
+
+if TYPE_CHECKING:
+    from llvmlite.binding import ModuleRef
 
 
 class Compiler:
@@ -38,8 +42,18 @@ class Compiler:
         :param device: The target device to lower for
         :return:
         """
-        pm = PassManager(context=self._context)
         logger.debug("Lowering down MLIR module to LLVM IR")
+        pm = PassManager(context=self._context)
+        pm = with_llvm_lowering_passes(pm)
+        out = pm.run(self._module.operation)
+        print(f"OUT: {out}")
+
+    def as_llvm_module(self, device: Device) -> "ModuleRef":
+        llvm_ir = self.as_llvmir(device)
+        llvm_module = parse_llvm_assembly(llvm_ir)
+        llvm_module.verify()
+        return llvm_module
+
 
     def jit(self, *, device: Device, target: LlvmTarget | None = None):
         """
@@ -54,11 +68,12 @@ class Compiler:
         engine = allocate_execution_engine(target=target)
 
         # Lower down the current module to a llvm compatible representation
-        llvm_ir = self.as_llvmir(device)
+        llvm_module = self.as_llvm_module(device)
 
         # Register the new module to the JIT engine and compile down to in-memory executable
-        engine.add_module(llvm_ir)
+        engine.add_module(llvm_module)
         engine.finalize_object()
+        engine.run_static_constructors()
 
     def compile(self, dest: Path, *, device: Device, target: LlvmTarget | None = None):
         """
