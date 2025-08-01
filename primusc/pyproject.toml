@@ -1,0 +1,29 @@
+[project]
+name = "primusc"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Morgan Funtowicz", email = "funtowiczmo@gmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "click>=8.2.1",
+    "llvmlite>=0.44.0",
+    "loguru>=0.7.3",
+    "mlir>=22.0.0.2025073101",
+]
+
+[project.scripts]
+primusc = "primusc:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv.sources]
+mlir = { index = "mlir-wheel" }
+
+[[tool.uv.index]]
+name = "mlir-wheel"
+url = "https://github.com/makslevental/mlir-wheels/releases/expanded_assets/latest"

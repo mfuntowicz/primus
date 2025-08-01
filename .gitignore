@@ -1,0 +1,10 @@
+# IntelliJ
+.idea/
+*.iml
+
+# Rust
+target/
+
+# Python
+.[v?]env/
+*.pyc
