@@ -26,5 +26,5 @@ def allocate_execution_engine(target: llvm.Target | None = None) -> "ExecutionEn
     target_machine = target.create_target_machine()
     backing_mod = llvm.parse_assembly("")
 
-    logger.debug(f"Allocating LLVM execution engine targeting {target}")
+    logger.debug(f"Allocating LLVM execution engine targeting {target.triple}")
     return llvm.create_mcjit_compiler(backing_mod, target_machine)

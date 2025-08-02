@@ -12,6 +12,7 @@ dependencies = [
     "llvmlite>=0.44.0",
     "loguru>=0.7.3",
     "mlir>=22.0.0.2025073101",
+    "mlir-python-extras>=0.0.8.2025080121",
 ]
 
 [project.scripts]
@@ -23,6 +24,7 @@ build-backend = "hatchling.build"
 
 [tool.uv.sources]
 mlir = { index = "mlir-wheel" }
+mlir-python-extras = { git = "https://github.com/makslevental/mlir-python-extras"}
 
 [[tool.uv.index]]
 name = "mlir-wheel"
