@@ -1,4 +1,3 @@
-from mlir.passmanager import PassManager
 from mlir.extras.runtime.passes import Pipeline
 
 
@@ -72,10 +71,10 @@ def with_llvm_lowering_passes(pipeline: Pipeline | None = None) -> Pipeline:
 
     # LLVM conversion
     pipeline \
-        .inline() \
+        .convert_to_llvm(dynamic=True) \
+        .lower_to_llvm(use_bare_ptr_memref_call_conv=False) \
         .canonicalize() \
         .cse() \
-        .lower_to_llvm(use_bare_ptr_memref_call_conv=False) \
-        .strip_debuginfo()
+        .llvm_legalize_for_export()
 
     return pipeline

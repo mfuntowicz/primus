@@ -3,7 +3,10 @@ name = "primus"
 version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "mlir>=22.0.0.2025080201",
+    "mlir-native-tools>=22.0.0.2025080201",
+]
 
 [tool.uv.workspace]
 members = [

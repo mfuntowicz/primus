@@ -1,10 +1,14 @@
 from typing import TYPE_CHECKING
 
+import llvmlite
 import llvmlite.binding as llvm
+llvmlite.opaque_pointers_enabled = True
+
 from loguru import logger
 
 if TYPE_CHECKING:
     from llvmlite.binding import ExecutionEngine
+
 
 def initialize_llvm():
     """

@@ -11,8 +11,9 @@ dependencies = [
     "click>=8.2.1",
     "llvmlite>=0.44.0",
     "loguru>=0.7.3",
-    "mlir>=22.0.0.2025073101",
-    "mlir-python-extras>=0.0.8.2025080121",
+    "mlir>=22.0.0.2025080201",
+    "mlir-native-tools>=22.0.0.2025080201",
+    "mlir-python-extras>=0.0.8.2025080201",
 ]
 
 [project.scripts]
@@ -23,9 +24,12 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.uv.sources]
+llvmlite = { git = "https://github.com/numba/llvmlite"}
 mlir = { index = "mlir-wheel" }
+mlir-native-tools = { index = "mlir-wheel" }
 mlir-python-extras = { git = "https://github.com/makslevental/mlir-python-extras"}
 
 [[tool.uv.index]]
 name = "mlir-wheel"
-url = "https://github.com/makslevental/mlir-wheels/releases/expanded_assets/latest"
+url = "https://makslevental.github.io/wheels/"
+format = "flat"

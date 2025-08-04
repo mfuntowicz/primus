@@ -1,21 +1,19 @@
 import subprocess
 from pathlib import Path
+import os
 from typing import Self, TYPE_CHECKING
-
-import llvmlite.binding
-from llvmlite.binding import Target as LlvmTarget, parse_assembly as parse_llvm_assembly
-from loguru import logger
-from mlir.ir import Context as MlirContext, Module as MlirModule
-from mlir.passmanager import PassManager
-from mlir.extras.runtime.passes import  run_pipeline
-
 
 from .devices import Device
 from .llvm import allocate_execution_engine, initialize_llvm
 from .passes import with_llvm_lowering_passes
 
-if TYPE_CHECKING:
-    from llvmlite.binding import ModuleRef
+
+from loguru import logger
+from llvmlite.binding import Target as LlvmTarget
+from mlir.ir import Context as MlirContext, Module as MlirModule
+from mlir.passmanager import PassManager
+
+
 
 
 class Compiler:
@@ -40,7 +38,27 @@ class Compiler:
             raise IOError(f"{module_file} not found")
 
     @staticmethod
-    def translate_to_llvmir(module: str) -> "MlirModule":
+    def translate_to_llvmir(module: str) -> (str, str):
+        # Find path to mlir/bin
+        def find_mlir_bin_path():
+            from importlib.util import find_spec
+            if (mlir_package_path := Path(find_spec("mlir").submodule_search_locations[0])).exists():
+                return mlir_package_path / "bin", mlir_package_path / "lib"
+            else:
+                raise ImportError("mlir package not found")
+
+        # Préparer l'environnement
+        env = os.environ.copy()
+        mlir_bin_path, mlir_lib_path = find_mlir_bin_path()
+
+        if mlir_bin_path:
+            env["PATH"] = str(mlir_bin_path) + os.pathsep + env.get("PATH", "")
+            print(f"Added to PATH: {mlir_bin_path}")
+
+        if mlir_lib_path:
+            env["LD_LIBRARY_PATH"] = str(mlir_lib_path) + os.pathsep + env.get("LD_LIBRARY_PATH", "")
+            print(f"Added to LD_LIBRARY_PATH: {mlir_lib_path}")
+
         # Run mlir-translate to convert to LLVM IR
         translate_cmd = ["mlir-translate", "--mlir-to-llvmir"]
         try:
@@ -50,6 +68,7 @@ class Compiler:
                 capture_output=True,
                 text=True,
                 check=True,
+                env=env
             )
         except subprocess.CalledProcessError as e:
             print("Error running mlir-translate:")
@@ -70,7 +89,7 @@ class Compiler:
         # Clone the module to keep the original copy
         module = self._module.operation.clone()
 
-        # Build-up the lowering pipeline
+        # Build up the lowering pipeline
         pipeline = with_llvm_lowering_passes()
 
         # Execute the pipeline
@@ -89,6 +108,8 @@ class Compiler:
         :param target:
         :return:
         """
+        from llvmlite.binding import  parse_assembly as parse_llvm_assembly
+
         initialize_llvm()
 
         # Allocate the LLVM JITer
@@ -97,10 +118,10 @@ class Compiler:
         # Lower down the current module to a llvm compatible representation
         llvm_ir = self.as_llvm(device)
         llvm_asm = self.translate_to_llvmir(str(llvm_ir.operation).strip())
+
         llvm_module = parse_llvm_assembly(llvm_asm)
         llvm_module.verify()
 
-        print(str(llvm_module))
         llvmir_module = self.translate_to_llvmir(str(llvm_module))
 
         # Register the new module to the JIT engine and compile down to in-memory executable

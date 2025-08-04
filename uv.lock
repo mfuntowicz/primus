@@ -83,18 +83,27 @@ wheels = [
 
 [[package]]
 name = "mlir"
-version = "22.0.0.2025073101+cuda.08e40c12"
-source = { registry = "https://github.com/makslevental/mlir-wheels/releases/expanded_assets/latest" }
+version = "22.0.0.2025080201+cuda.962ee7a5"
+source = { registry = "https://makslevental.github.io/wheels/" }
 wheels = [
-    { url = "https://github.com/makslevental/mlir-wheels/releases/download/latest/mlir-22.0.0.2025073101+cuda.08e40c12-py3-none-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl" },
-    { url = "https://github.com/makslevental/mlir-wheels/releases/download/latest/mlir_python_bindings-22.0.0.2025073101+cuda.08e40c12-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl" },
-    { url = "https://github.com/makslevental/mlir-wheels/releases/download/latest/mlir_python_bindings-22.0.0.2025073101+cuda.08e40c12-cp314-cp314-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl" },
-    { url = "https://github.com/makslevental/mlir-wheels/releases/download/latest/mlir_python_bindings-22.0.0.2025073101+cuda.08e40c12-cp314-cp314t-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl" },
+    { url = "https://github.com/makslevental/wheels/releases/download/i/mlir-22.0.0.2025080201+cuda.962ee7a5-py3-none-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl" },
+]
+
+[[package]]
+name = "mlir-native-tools"
+version = "22.0.0.2025080201+962ee7a5"
+source = { registry = "https://makslevental.github.io/wheels/" }
+wheels = [
+    { url = "https://github.com/makslevental/wheels/releases/download/i/mlir_native_tools-22.0.0.2025080201+962ee7a5-py3-none-linux_aarch64.whl" },
+    { url = "https://github.com/makslevental/wheels/releases/download/i/mlir_native_tools-22.0.0.2025080201+962ee7a5-py3-none-linux_x86_64.whl" },
+    { url = "https://github.com/makslevental/wheels/releases/download/i/mlir_native_tools-22.0.0.2025080201+962ee7a5-py3-none-macosx_12_0_arm64.whl" },
+    { url = "https://github.com/makslevental/wheels/releases/download/i/mlir_native_tools-22.0.0.2025080201+962ee7a5-py3-none-macosx_12_0_x86_64.whl" },
+    { url = "https://github.com/makslevental/wheels/releases/download/i/mlir_native_tools-22.0.0.2025080201+962ee7a5-py3-none-win_amd64.whl" },
 ]
 
 [[package]]
 name = "mlir-python-extras"
-version = "0.0.8.2025080121+ba2e6fe"
+version = "0.0.8.2025080220+ba2e6fe"
 source = { git = "https://github.com/makslevental/mlir-python-extras#ba2e6fe4d353e08aa658e52a2594fa2c3aae4b6f" }
 dependencies = [
     { name = "bytecode" },
@@ -134,6 +143,16 @@ wheels = [
 name = "primus"
 version = "0.1.0"
 source = { virtual = "." }
+dependencies = [
+    { name = "mlir" },
+    { name = "mlir-native-tools" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "mlir", specifier = ">=22.0.0.2025080201" },
+    { name = "mlir-native-tools", specifier = ">=22.0.0.2025080201" },
+]
 
 [[package]]
 name = "primusc"
@@ -144,6 +163,7 @@ dependencies = [
     { name = "llvmlite" },
     { name = "loguru" },
     { name = "mlir" },
+    { name = "mlir-native-tools" },
     { name = "mlir-python-extras" },
 ]
 
@@ -152,7 +172,8 @@ requires-dist = [
     { name = "click", specifier = ">=8.2.1" },
     { name = "llvmlite", specifier = ">=0.44.0" },
     { name = "loguru", specifier = ">=0.7.3" },
-    { name = "mlir", specifier = ">=22.0.0.2025073101", index = "https://github.com/makslevental/mlir-wheels/releases/expanded_assets/latest" },
+    { name = "mlir", specifier = ">=22.0.0.2025080201", index = "https://makslevental.github.io/wheels/" },
+    { name = "mlir-native-tools", specifier = ">=22.0.0.2025080201", index = "https://makslevental.github.io/wheels/" },
     { name = "mlir-python-extras", git = "https://github.com/makslevental/mlir-python-extras" },
 ]
 
