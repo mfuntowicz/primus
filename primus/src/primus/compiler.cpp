@@ -10,14 +10,15 @@ namespace primus
 {
     Compiler Compiler::FromFile(std::filesystem::path input)
     {
-        SPDLOG_INFO("Processing kernel from {}", input);
-        if (std::filesystem::exists(input))
+        if (!std::filesystem::exists(input))
         {
-            auto fin = std::ifstream(input);
-            return Compiler{};
+            SPDLOG_ERROR("{} does not exist", input);
+            throw std::runtime_error("Could not open input file");
         }
 
-        throw std::runtime_error("Could not open input file");
+        SPDLOG_INFO("Processing kernel from {}", input);
+        auto fin = std::ifstream(input);
+        return Compiler{};
     }
 
 }
