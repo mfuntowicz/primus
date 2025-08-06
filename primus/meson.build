@@ -1,4 +1,5 @@
-project('primus', 'cpp', version : '1.0.0', license : 'Apache 2.0')
+project('primus', 'cpp', version : '1.0.0', license : 'Apache 2.0', default_options : ['cpp_std=c++23', 'build.cpp_std=c++23'])
+
 
 # Dependencies
 fmt = subproject('fmt')

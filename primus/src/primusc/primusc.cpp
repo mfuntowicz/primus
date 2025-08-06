@@ -10,7 +10,7 @@
 void compile(const cxxopts::ParseResult &args)
 {
     if (!args.count("input")) {
-        SPDLOG_ERROR("No input file provided");
+        SPDLOG_ERROR("no input file provided");
         throw std::runtime_error("No input file provided");
     }
 
