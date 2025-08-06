@@ -1,4 +1,4 @@
-[project]
+2706093[project]
 name = "primusc"
 version = "0.1.0"
 description = "Add your description here"
@@ -11,9 +11,9 @@ dependencies = [
     "click>=8.2.1",
     "llvmlite>=0.44.0",
     "loguru>=0.7.3",
-    "mlir>=22.0.0.2025080201",
-    "mlir-native-tools>=22.0.0.2025080201",
-    "mlir-python-extras>=0.0.8.2025080201",
+    "mlir>=22.0.0.2025080301",
+    "mlir-native-tools>=22.0.0.2025080301",
+    "mlir-python-extras>=0.0.8.2025080301",
 ]
 
 [project.scripts]
@@ -24,7 +24,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.uv.sources]
-llvmlite = { git = "https://github.com/numba/llvmlite"}
+#llvmlite = { git = "https://github.com/numba/llvmlite"}
 mlir = { index = "mlir-wheel" }
 mlir-native-tools = { index = "mlir-wheel" }
 mlir-python-extras = { git = "https://github.com/makslevental/mlir-python-extras"}
