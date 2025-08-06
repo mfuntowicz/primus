@@ -1,0 +1,22 @@
+module {
+    func.func @apply_rotary_embedding_f32(
+        %x1: tensor<?x?xf32>,
+        %x2: tensor<?x?xf32>,
+        %cos: tensor<?x?xf32>,
+        %sin: tensor<?x?xf32>,
+        %out1: tensor<?x?xf32>,
+        %out2: tensor<?x?xf32>
+    ) -> (tensor<?x?xf32>, tensor<?x?xf32>) {
+
+        // Perform the rotary embedding operation
+        %cos_x1 = "stablehlo.multiply"(%x1, %cos) : (tensor<?x?xf32>, tensor<?x?xf32>) -> tensor<?x?xf32>
+        %sin_x1 = "stablehlo.multiply"(%x1, %sin) : (tensor<?x?xf32>, tensor<?x?xf32>) -> tensor<?x?xf32>
+        %out_x1 = "stablehlo.subtract"(%cos_x1, %sin_x1) : (tensor<?x?xf32>, tensor<?x?xf32>) -> tensor<?x?xf32>
+
+        %cos_x2 = "stablehlo.multiply"(%x2, %cos) : (tensor<?x?xf32>, tensor<?x?xf32>) -> tensor<?x?xf32>
+        %sin_x2 = "stablehlo.multiply"(%x2, %sin) : (tensor<?x?xf32>, tensor<?x?xf32>) -> tensor<?x?xf32>
+        %out_x2 = "stablehlo.add"(%cos_x2, %sin_x2) : (tensor<?x?xf32>, tensor<?x?xf32>) -> tensor<?x?xf32>
+
+        return %out_x1, %out_x2 : tensor<?x?xf32>, tensor<?x?xf32>
+    }
+}
