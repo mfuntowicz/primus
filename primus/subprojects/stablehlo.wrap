@@ -1,0 +1,6 @@
+[wrap-file]
+directory = stablehlo-99b0925e064b24c3623bf6fdb20de70732ffe81e
+source_url = https://github.com/openxla/stablehlo/archive/99b0925e064b24c3623bf6fdb20de70732ffe81e.tar.gz
+source_filename = stablehlo-99b0925e064b24c3623bf6fdb20de70732ffe81e.tar.gz
+source_hash = 180de526e1e33fb442eb5f35c4d59700f0e058c55dd6b0f17cad6a3232ad84d2
+wrapdb_version = 1.12.3
