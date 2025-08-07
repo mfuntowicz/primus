@@ -16,6 +16,7 @@ void compile(const cxxopts::ParseResult &args)
 
     const auto input = args["input"].as<std::filesystem::path>();
     auto compiler = primus::Compiler::FromFile(input);
+    compiler.LowerTo(primus::CudaTarget{});
 }
 
 int main(int argc, char **argv)

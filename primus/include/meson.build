@@ -1,1 +1,1 @@
-install_headers('primus/compiler.hpp', 'primus.hpp')
+install_headers('primus/compiler.hpp', 'primus/targets/base.hpp', 'primus/targets/cuda.hpp', 'primus.hpp')

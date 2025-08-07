@@ -1,11 +1,12 @@
 #include <filesystem>
 #include <fstream>
+#include <utility>
+#include <mlir/Dialect/Bufferization/IR/Bufferization.h>
 
-#include "primus/compiler.hpp"
+#include "primus.hpp"
 
 #include "spdlog/fmt/fmt.h"
 #include "spdlog/spdlog.h"
-
 
 #include "llvm/Support/SourceMgr.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
@@ -13,11 +14,16 @@
 #include "mlir/IR/MLIRContext.h"
 #include "mlir/IR/OwningOpRef.h"
 #include "mlir/Parser/Parser.h"
+#include "mlir/Pass/PassManager.h"
+#include "mlir/Transforms/Passes.h"
+#include "stablehlo/conversions/linalg/transforms/Passes.h"
 #include "stablehlo/dialect/Register.h"
+#include "stablehlo/transforms/Passes.h"
+#include "stablehlo/transforms/optimization/Passes.h"
 
 namespace primus
 {
-    Compiler::Compiler(const mlir::ModuleOp module):  module(module)
+    Compiler::Compiler(std::shared_ptr<mlir::MLIRContext> context, const mlir::ModuleOp module): context(std::move(context)), module(module)
     {
         if constexpr (IS_DEBUG)
         {
@@ -37,18 +43,37 @@ namespace primus
 
         // Register dialects
         mlir::DialectRegistry registry;
+        mlir::register registerAllDialects(registry);
         mlir::stablehlo::registerAllDialects(registry);
+        mlir::stablehlo::registerPasses();
+        mlir::stablehlo::registerOptimizationPasses();
+        mlir::stablehlo::registerStablehloLinalgTransformsPasses();
 
         // Parse the input mlir.
-        mlir::MLIRContext context(registry);
+        auto context = std::make_shared<mlir::MLIRContext>(registry);
         llvm::SourceMgr sourceMgr;
 
         sourceMgr.AddNewSourceBuffer(std::move(*fileOrErr), llvm::SMLoc());
-        mlir::OwningOpRef<mlir::ModuleOp> owningModule = mlir::parseSourceFile<mlir::ModuleOp>(sourceMgr, &context);
+        mlir::OwningOpRef<mlir::ModuleOp> owningModule = mlir::parseSourceFile<mlir::ModuleOp>(sourceMgr, &*context);
         if (!owningModule) {
             throw std::runtime_error(spdlog::fmt_lib::format("Parsing of input file {} failed", file.string()));
         }
 
-        return Compiler(owningModule.release());
+        return { context, owningModule.release() };
+    }
+
+    void Compiler::LowerTo(const CompilationTarget& target) const
+    {
+        mlir::ModuleOp ir(module);
+        mlir::PassManager pm(context.get());
+
+        target.LoweringPipeline(pm);
+        if (const auto status = pm.run(ir); status.succeeded())
+        {
+            ir.dump();
+        } else
+        {
+            SPDLOG_ERROR("Failed to lower to linalg");
+        }
     }
 }

@@ -1,17 +1,19 @@
-#ifndef PRIMUS_COMPILER_HPP
-#define PRIMUS_COMPILER_HPP
+#ifndef PRIMUS_COMPILER_HEADER
+#define PRIMUS_COMPILER_HEADER
 
 #include <filesystem>
-#include "mlir/IR/ImplicitLocOpBuilder.h"
+#include <memory>
+
 #include <mlir/IR/BuiltinOps.h>
 
 namespace primus
 {
     class Compiler {
     protected:
+        std::shared_ptr<mlir::MLIRContext> context;
         mlir::ModuleOp module;
 
-        explicit Compiler(mlir::ModuleOp module);
+        Compiler(std::shared_ptr<mlir::MLIRContext> context, mlir::ModuleOp module);
 
     public:
         /**
@@ -20,6 +22,8 @@ namespace primus
          * @return
          */
         static Compiler FromFile(const std::filesystem::path& file);
+
+        void LowerTo(const CompilationTarget& target) const;
     };
 }
-#endif // PRIMUS_COMPILER_HPP
+#endif // PRIMUS_COMPILER_HEADER

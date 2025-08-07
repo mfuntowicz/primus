@@ -8,7 +8,7 @@ CXX = meson.get_compiler('cpp')
 
 # Global args
 if get_option('buildtype') == 'debug'
-    add_global_arguments('-DIS_DEBUG', language: 'cpp')
+    add_global_arguments(['-DIS_DEBUG'], language: 'cpp')
 endif
 
 # Dependencies
@@ -419,7 +419,7 @@ stablehlo_path = '/speedy/Workspace/stablehlo'
 stablehlo_build_path = stablehlo_path / 'build'
 stablehlo_llvm_build_path = stablehlo_path / 'llvm_build'
 
-stablehlo_includes = [include_directories(stablehlo_path)]
+stablehlo_includes = [include_directories(stablehlo_path, stablehlo_build_path)]
 stablehlo_chlo_ops = CXX.find_library('ChloOps', dirs: [stablehlo_build_path / 'lib'], header_include_directories: stablehlo_includes, static: true)
 stablehlo_vhlo_ops = CXX.find_library('VhloOps', dirs: [stablehlo_build_path / 'lib'], header_include_directories: stablehlo_includes, static: true)
 
@@ -428,11 +428,16 @@ stablehlo_assembly_format = CXX.find_library('StablehloAssemblyFormat', dirs: [s
 stablehlo_base = CXX.find_library('StablehloBase', dirs: [stablehlo_build_path / 'lib'], header_include_directories: stablehlo_includes, static: true)
 stablehlo_broadcast_utils = CXX.find_library('StablehloBroadcastUtils', dirs: [stablehlo_build_path / 'lib'], header_include_directories: stablehlo_includes, static: true)
 stablehlo_ops = CXX.find_library('StablehloOps', dirs: [stablehlo_build_path / 'lib'], header_include_directories: stablehlo_includes, static: true)
+stablehlo_linalg_transforms = CXX.find_library('StablehloLinalgTransforms', dirs: [stablehlo_build_path / 'lib'], header_include_directories: stablehlo_includes, static: true)
+stablehlo_optim_passes = CXX.find_library('StablehloOptimizationPasses', dirs: [stablehlo_build_path / 'lib'], header_include_directories: stablehlo_includes, static: true)
 stablehlo_type_conversion = CXX.find_library('StablehloTypeConversion', dirs: [stablehlo_build_path / 'lib'], header_include_directories: stablehlo_includes, static: true)
 stablehlo_register = CXX.find_library('StablehloRegister', dirs: [stablehlo_build_path / 'lib'], header_include_directories: stablehlo_includes, static: true)
 stablehlo_ref_api = CXX.find_library('StablehloReferenceApi', dirs: [stablehlo_build_path / 'lib'], header_include_directories: stablehlo_includes, static: true)
+stablehlo_passes = CXX.find_library('StablehloPasses', dirs: [stablehlo_build_path / 'lib'], header_include_directories: stablehlo_includes, static: true)
+stablehlo_passes_utils = CXX.find_library('StablehloPassUtils', dirs: [stablehlo_build_path / 'lib'], header_include_directories: stablehlo_includes, static: true)
 stablehlo_type_inference = CXX.find_library('StablehloTypeInference', dirs: [stablehlo_build_path / 'lib'], header_include_directories: stablehlo_includes, static: true)
-d_stablehlo = [stablehlo_assembly_format, stablehlo_base, stablehlo_broadcast_utils, stablehlo_ops, stablehlo_chlo_ops, stablehlo_vhlo_ops, stablehlo_vhlo_types, stablehlo_register, stablehlo_ref_api, stablehlo_type_conversion, stablehlo_type_inference]
+stablehlo_version = CXX.find_library('Version', dirs: [stablehlo_build_path / 'lib'], header_include_directories: stablehlo_includes, static: true)
+d_stablehlo = [stablehlo_assembly_format, stablehlo_base, stablehlo_broadcast_utils, stablehlo_ops, stablehlo_chlo_ops, stablehlo_optim_passes, stablehlo_linalg_transforms, stablehlo_vhlo_ops, stablehlo_vhlo_types, stablehlo_register, stablehlo_ref_api, stablehlo_type_conversion, stablehlo_passes, stablehlo_passes_utils, stablehlo_type_inference, stablehlo_version]
 
 # Primus and derivates definitions
 inc = include_directories('include')

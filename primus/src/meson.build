@@ -2,7 +2,7 @@ stablehlo_llvm_lib_path = stablehlo_llvm_build_path / 'lib'
 
 # Primus library definition
 primus_sources = [
-    'primus/compiler.cpp',
+    'primus/compiler.cpp', 'primus/targets/cuda.cpp'
 ]
 primus = shared_library(
     'primus',
