@@ -6,6 +6,9 @@ cmake = import('cmake')
 CC = meson.get_compiler('c')
 CXX = meson.get_compiler('cpp')
 
+env = environment()
+env.prepend('LIBRARY_PATH', '/speedy/Workspace/stablehlo/llvm-build/lib/')
+
 # Global args
 if get_option('buildtype') == 'debug'
     add_global_arguments(['-DIS_DEBUG'], language: 'cpp')
@@ -22,22 +25,26 @@ cxxopts = subproject('cxxopts')
 d_cxxopts = cxxopts.get_variable('cxxopts_dep')
 
 # Retrieve LLVM dependency
-#d_llvm = dependency(
-#    'llvm',
-#    version: '>= 20.0',
-#    modules: ['core', 'support'],
-#    cmake_module_path: [
-#        '/speedy/Workspace/stablehlo/llvm-build/lib/cmake/llvm',
-#        '/speedy/Workspace/stablehlo/llvm-build/lib/cmake/mlir'
-#    ]
-#)
+d_llvm = dependency(
+    'llvm',
+    version: '> 21.0',
+    static: true,
+    modules: ['core', 'codegen', 'linker', 'nvptx', 'option', 'support', 'target', 'passes'],
+    cmake_module_path: [
+        '/speedy/Workspace/stablehlo/llvm-build/lib/cmake/llvm',
+        '/speedy/Workspace/stablehlo/llvm-build/lib/cmake/mlir'
+    ],
+)
 
-llvm_config_includes_cmd = run_command('/speedy/Workspace/stablehlo/llvm-build/bin/llvm-config', ['--includedir'], check: true)
-llvm_config_ldargs_cmd = run_command('/speedy/Workspace/stablehlo/llvm-build/bin/llvm-config', ['--ldflags'], check: true)
-llvm_config_cppflags_cmd = run_command('/speedy/Workspace/stablehlo/llvm-build/bin/llvm-config', ['--cxxflags'], check: true)
-llvm_includes = llvm_config_includes_cmd.stdout().strip()
-llvm_ldargs = llvm_config_ldargs_cmd.stdout().strip()
-llvm_cppflags = llvm_config_cppflags_cmd.stdout().strip()
+#llvm_config_includes_cmd = run_command('/speedy/Workspace/stablehlo/llvm-build/bin/llvm-config', ['--includedir'], check: true)
+#llvm_config_cppflags_cmd = run_command('/speedy/Workspace/stablehlo/llvm-build/bin/llvm-config', ['--cxxflags'], check: true)
+#llvm_config_ldargs_cmd = run_command('/speedy/Workspace/stablehlo/llvm-build/bin/llvm-config', ['--ldflags'], check: true)
+#llvm_config_libs_cmd = run_command('/speedy/Workspace/stablehlo/llvm-build/bin/llvm-config', ['--libs', 'core', 'support'], check: true)
+#llvm_includes = llvm_config_includes_cmd.stdout().strip()
+#llvm_cppflags = llvm_config_cppflags_cmd.stdout().strip()
+#llvm_ldargs = llvm_config_ldargs_cmd.stdout().strip()
+#llvm_libs = llvm_config_libs_cmd.stdout().strip()
+#llvm_ldargs = llvm_ldargs + llvm_libs
 
 # Build up MLIR dependencies...
 mlir_inc = include_directories('/speedy/Workspace/stablehlo/llvm-project/mlir/include')
@@ -390,12 +397,14 @@ d_mlir_targets = [
 d_mlir = []
 
 foreach target : d_mlir_targets
-    d_mlir += CXX.find_library(
+    d_target = CXX.find_library(
         'MLIR' + target,
         dirs: ['/speedy/Workspace/stablehlo/llvm-build/lib'],
         header_include_directories: mlir_inc,
         static: true
     )
+
+    d_mlir += d_target
 endforeach
 
 # Look for StableHLO standalone

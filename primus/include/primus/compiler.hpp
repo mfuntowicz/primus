@@ -14,7 +14,7 @@ namespace primus
         mlir::ModuleOp module;
 
         Compiler(std::shared_ptr<mlir::MLIRContext> context, mlir::ModuleOp module);
-
+        template<bool isDebug> static constexpr mlir::MLIRContext::Threading GetThreadingMode();
     public:
         /**
          * Create a compiler instance from a file `input`
@@ -23,7 +23,7 @@ namespace primus
          */
         static Compiler FromFile(const std::filesystem::path& file);
 
-        void LowerTo(const CompilationTarget& target) const;
+        void LowerFor(const CompilationTarget& target) const;
     };
 }
 #endif // PRIMUS_COMPILER_HEADER
