@@ -4,7 +4,7 @@
 #include "mlir/InitAllPasses.h"
 #include "mlir/Tools/mlir-opt/MlirOptMain.h"
 #include "primus/conversions/Passes.hpp"
-#include "primus/dialect/PrimusDialect.hpp"
+#include "primus/dialect/Register.hpp"
 
 int main(int argc, char **argv) {
     mlir::registerAllPasses();
@@ -14,7 +14,7 @@ int main(int argc, char **argv) {
     mlir::registerAllDialects(registry);
     mlir::registerAllExtensions(registry);
 
-    // registry.insert<mlir::primus::PrimusDialect>();
+    mlir::primus::registerAllDialects(registry);
 
     return failed(
         mlir::MlirOptMain(argc, argv, "Primus optimizer driver\n", registry));

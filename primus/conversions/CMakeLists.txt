@@ -5,20 +5,16 @@ add_public_tablegen_target(
 )
 
 add_primus_library(PrimusToStablehlo
-    Passes.hpp
-    StablehloUtils.hpp
-    StablehloUtils.cpp
-    ElementwiseOpToStablehlo.cpp
+    Rewriters.hpp
     PrimusLegalizeToStablehlo.cpp
 
     DEPENDS
     PrimusStablehloTransformsPassIncGen
 
     LINK_LIBS PUBLIC
+    StablehloBase
     ChloOps
-#    StablehloBase
     StablehloOps
-#    StablehloTypeConversion
     MLIRArithDialect
     MLIRBufferizationDialect
     MLIRFuncDialect

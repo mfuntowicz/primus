@@ -9,15 +9,25 @@ set(LLVM_TARGET_DEFINITIONS PrimusTypes.td)
 mlir_tablegen(Types.h.inc -gen-typedef-decls)
 mlir_tablegen(Types.cpp.inc -gen-typedef-defs)
 
-add_public_tablegen_target(PrimusTableGen)
+add_public_tablegen_target(PrimusOpTableGen)
 
 add_primus_library(PrimusOps
     PrimusDialect.cpp
+    PrimusOps.cpp
+    Register.cpp
 
     DEPENDS
-    PrimusTableGen
+    PrimusOpTableGen
 
     LINK_LIBS PUBLIC
     MLIRIR
+    ChloOps
     StablehloOps
+    StablehloBase
+    StablehloTypeInference
+)
+
+target_include_directories(PrimusOps INTERFACE
+    $<BUILD_INTERFACE:${PRIMUS_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${PRIMUS_BINARY_DIR}>
 )

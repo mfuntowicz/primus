@@ -5,6 +5,7 @@ set(LLVM_OPTIONAL_SOURCES
 get_property(dialect_libs GLOBAL PROPERTY MLIR_DIALECT_LIBS)
 get_property(conversion_libs GLOBAL PROPERTY MLIR_CONVERSION_LIBS)
 get_property(extension_libs GLOBAL PROPERTY MLIR_EXTENSION_LIBS)
+
 set(LIBS
     ${dialect_libs}
     ${conversion_libs}
@@ -14,9 +15,9 @@ set(LIBS
     MLIRRegisterAllDialects
     MLIRRegisterAllExtensions
     MLIRRegisterAllPasses
+    StablehloRegister
     PrimusOps
     PrimusToStablehlo
-    StablehloRegister
 )
 add_llvm_executable(primus-opt PrimusOptMain.cpp)
 llvm_update_compile_flags(primus-opt)

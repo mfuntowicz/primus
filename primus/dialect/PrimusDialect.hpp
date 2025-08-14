@@ -9,14 +9,11 @@
 
 namespace mlir::primus
 {
-    class PrimusDialect final : Dialect
+    class PrimusDialect final : public Dialect
     {
     public:
         explicit PrimusDialect(MLIRContext *context);
         static constexpr StringRef getDialectNamespace() { return "primus"; }
-
-        void getCanonicalizationPatterns(RewritePatternSet& results) const override;
-        void* getRegisteredInterfaceForOp(TypeID interfaceID, OperationName opName) override;
     };
 }
 
