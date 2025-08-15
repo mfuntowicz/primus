@@ -57,17 +57,10 @@ list(APPEND CMAKE_MODULE_PATH "${LLVM_CMAKE_DIR}")
 include(TableGen) # required by AddMLIR
 include(AddLLVM)
 include(AddMLIR)
+include(HandleLLVMOptions)
 
 # StableHLO
-if(PRIMUS_STABLEHLO_BUILD_DIR)
-    include_directories("${PRIMUS_STABLEHLO_BUILD_DIR}/..")
-    include_directories("${PRIMUS_STABLEHLO_BUILD_DIR}")
-    link_directories("${PRIMUS_STABLEHLO_BUILD_DIR}/lib")
-else()
-    message(FATAL_ERROR "StableHLO build not specified. Please relaunch with PRIMUS_STABLEHLO_BUILD_DIR=../..")
-endif()
 
-include_directories(".")
 include_directories(${MLIR_INCLUDE_DIRS})
 include_directories(${LLVM_INCLUDE_DIRS})
 include_directories(${PROJECT_SOURCE_DIR})
@@ -76,6 +69,17 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 link_directories(${LLVM_BUILD_LIBRARY_DIR})
 add_definitions(${LLVM_DEFINITIONS})
+#endif()
+
+set(STABLEHLO_BUILD_EMBEDDED ON)
+set(STABLEHLO_ENABLE_BINDINGS_PYTHON OFF)
+set(STABLEHLO_)
+message(STATUS "Using LLVM_ENABLE_DEBUGLOC_COVERAGE_TRACKING in: ${LLVM_ENABLE_DEBUGLOC_COVERAGE_TRACKING}")
+set(LLVM_ENABLE_DEBUGLOC_COVERAGE_TRACKING "DISABLED")
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third-party/stablehlo
+        ${CMAKE_CURRENT_BINARY_DIR}/stablehlo
+        EXCLUDE_FROM_ALL)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third-party/stablehlo)
 
 #-------------------------------------------------------------------------------
 # Directory setup

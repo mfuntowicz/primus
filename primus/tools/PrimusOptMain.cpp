@@ -3,6 +3,7 @@
 #include "mlir/InitAllExtensions.h"
 #include "mlir/InitAllPasses.h"
 #include "mlir/Tools/mlir-opt/MlirOptMain.h"
+#include "stablehlo/dialect/Register.h"
 #include "primus/conversions/Passes.hpp"
 #include "primus/dialect/Register.hpp"
 
@@ -13,7 +14,7 @@ int main(int argc, char **argv) {
     mlir::DialectRegistry registry;
     mlir::registerAllDialects(registry);
     mlir::registerAllExtensions(registry);
-
+    mlir::stablehlo::registerAllDialects(registry);
     mlir::primus::registerAllDialects(registry);
 
     return failed(
