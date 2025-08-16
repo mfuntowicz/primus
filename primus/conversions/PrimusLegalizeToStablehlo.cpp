@@ -2,8 +2,11 @@
 // Created by mfuntowicz on 8/13/25.
 //
 #include <memory>
+#include <llvm/Support/Format.h>
 
+#include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/Dialect/Math/IR/Math.h"
+#include "mlir/IR/BuiltinTypes.h"
 #include "mlir/Pass/Pass.h"
 #include "mlir/Transforms/DialectConversion.h"
 #include "stablehlo/dialect/StablehloOps.h"
@@ -22,43 +25,35 @@ namespace mlir::primus
 
     namespace
     {
-        struct SwigluOpConverter final : OpConversionPattern<SwiGluOp>
+        struct SiluOpConverter final : OpConversionPattern<SiluOp>
         {
             using OpConversionPattern::OpConversionPattern;
 
-            LogicalResult matchAndRewrite(SwiGluOp op, OpAdaptor adaptor, ConversionPatternRewriter& rewriter) const override
+            LogicalResult matchAndRewrite(SiluOp op, OpAdaptor adaptor, ConversionPatternRewriter& rewriter) const override
             {
-                // Ensure we have 2 operands
-                if (adaptor.getOperands().size() != 2)
+                // Input references
+                const auto xRef = adaptor.getX();
+
+                // Ensure we operate on RankedTensor
+                if (!isa<RankedTensorType>(xRef.getType()))
                 {
+                    op.emitError("SwiGluOp: `x` must be a ranked tensor");
                     return failure();
                 }
 
-                // Create the decomposition body
-                // rewriter.create(swiglu.getLoc(), adaptor.getOperands(), [&](OpBuilder &b, Location loc, ValueRange args)
-                // {
-                //     // Get the type of `x`
-                //     auto dtype = args[0].getType();
-                //
-                //     // Compute `swish(x, beta) = x * sigmoid(beta * x)
-                //     const auto one = b.create<stablehlo::ConstantOp>(loc, adaptor.getOperands(), dtype);
-                //     // const auto
-                //     // const auto negX = b.create<stablehlo::NegOp>(loc, adaptor.getOperands(), dtype);
-                //     // const auto expNegX = b.create<stablehlo::ExpOp>(loc, negX, dtype);
-                //     // const auto onePlusExpNegX = b.create<stablehlo::AddOp>(loc, one, expNegX, dtype);
-                //     // const auto swish = b.create<stablehlo::DivOp>(loc, one, onePlusExpNegX, dtype);
-                // });
-                //
-                // // Create the stablehlo::composite call
-                // rewriter.create<stablehlo::CompositeOp>(swiglu.getLoc(), adaptor.getOperands(), "primus.swiglu", "swiglu", 1);
-
-                if (const auto constTensor = toStableHloConstTensor<float>(rewriter, op, llvm::ArrayRef({1.0f}), {1}); constTensor.has_value())
+                // Retrieve the shape of the `x` input
+                const auto xTy = cast<RankedTensorType>(xRef.getType());
+                const auto xShape = xTy.getShape();
+                if (xShape.empty())
                 {
-                    rewriter.replaceOp(op, constTensor.value());
-                    return success();
+                    op.emitError("SwiGluOp: `x` cannot be a scalar (0-rank tensor)");
+                    return failure();
                 }
 
-                return failure();
+                auto xLogistic = rewriter.create<stablehlo::LogisticOp>(op.getLoc(), op.getResult().getType(), xRef);
+                rewriter.replaceOpWithNewOp<stablehlo::MulOp>(op, op.getResult().getType(), xRef, xLogistic);
+
+                return success();
             }
         };
 
@@ -68,7 +63,6 @@ namespace mlir::primus
             FrozenRewritePatternSet patterns;
 
             using PrimusLegalizeToStablehloBase::PrimusLegalizeToStablehloBase;
-            using OpAdaptor = SwiGluOp::Adaptor;
 
             LogicalResult initialize(MLIRContext* context) override
             {
@@ -88,11 +82,16 @@ namespace mlir::primus
                     return signalPassFailure();
                 }
             }
+
+            void getDependentDialects(DialectRegistry& registry) const override
+            {
+                registry.insert<chlo::ChloDialect, stablehlo::StablehloDialect>();
+            }
         };
     }
 
     void populatePrimusLegalizeToStablehloPatterns(MLIRContext* context, RewritePatternSet &patterns)
     {
-        patterns.add<SwigluOpConverter>(context);
+        patterns.add<SiluOpConverter>(context);
     }
 }

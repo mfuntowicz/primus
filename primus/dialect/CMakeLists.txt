@@ -12,6 +12,7 @@ mlir_tablegen(Types.cpp.inc -gen-typedef-defs)
 add_public_tablegen_target(PrimusOpTableGen)
 
 add_primus_library(PrimusOps
+    AssemblyFormat.cpp
     PrimusDialect.cpp
     PrimusOps.cpp
     Register.cpp

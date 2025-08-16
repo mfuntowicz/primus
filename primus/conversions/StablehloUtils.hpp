@@ -5,6 +5,8 @@
 #ifndef PRIMUS_STABLEHLOUTILS_HPP
 #define PRIMUS_STABLEHLOUTILS_HPP
 
+#include <numeric>
+
 #include "mlir/Dialect/Complex/IR/Complex.h"
 #include "mlir/IR/BuiltinAttributes.h"
 #include "mlir/IR/PatternMatch.h"
@@ -31,15 +33,14 @@ namespace mlir::primus
         return rewriter.create<chlo::ConstantLikeOp>(loc, cast<TypedAttr>(getAttr()), val);
     }
 
+
+
     template <typename T>
     std::optional<Value> toStableHloConstTensor(
         PatternRewriter &rewriter, Operation *op, ArrayRef<T> vec, const ArrayRef<int64_t> shape) {
-        uint64_t num_total_elements = 1;
-        for (const int64_t a : shape) {
-            num_total_elements *= a;
-        }
+        const auto numTotalElements = std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<int64_t>());
 
-        if (vec.size() != num_total_elements) {
+        if (vec.size() != numTotalElements) {
             op->emitOpError("getConstTensor(): number of elements mismatch.");
             return std::nullopt;
         }
@@ -62,6 +63,8 @@ namespace mlir::primus
             op->getLoc(), const_type, const_attr);
         return const_op.getResult();
     }
+
+
 }
 
 #endif //PRIMUS_STABLEHLOUTILS_HPP

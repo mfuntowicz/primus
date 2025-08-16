@@ -18,7 +18,6 @@ def Primus_Dialect : Dialect {
 
     let cppNamespace = "mlir::primus";
     let dependentDialects = [
-        "linalg::LinalgDialect"
         "stablehlo:StableHloDialect"
     ];
 }
@@ -26,13 +25,13 @@ def Primus_Dialect : Dialect {
 class Primus_Op<string mnemonic, list<Trait> traits = []> :
     Op<Primus_Dialect, mnemonic, traits>;
 
-def Primus_SwiGluOp: Primus_Op<"swiglu", [NoMemoryEffect, Elementwise, SameOperandsAndResultShape, Pure]> {
-    let summary = "Swish activation followed by a Gated Linear Unit (GLU)";
-    let arguments = (
-        ins Primus_FloatTensor:$x
-    );
-
+def Primus_SiluOp: Primus_Op<"silu", [SameOperandsElementType]> {
+    let summary = "SiLU activation";
+    let arguments = (ins Primus_FloatTensor:$x);
     let results = (outs Primus_FloatTensor:$out);
+    let assemblyFormat = [{
+        `(` $x `)` attr-dict `:`  custom<SameOperandsAndResultType>(type($x), type($out))
+    }];
 }
 
 #endif  // PRIMUS_OP

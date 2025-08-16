@@ -8,7 +8,7 @@ namespace mlir {
 
         // Add primus dialect to the provided registry.
         void registerAllDialects(DialectRegistry &registry);
-
+        void registerAllPasses();
     }
 }
 

@@ -35,6 +35,7 @@
 #include "mlir/Support/TypeID.h"
 #include "mlir/Transforms/InliningUtils.h"
 
+#include "primus/dialect/AssemblyFormat.hpp"
 
 #define GET_OP_CLASSES
 #include "primus/dialect/Ops.cpp.inc"
