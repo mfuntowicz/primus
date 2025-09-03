@@ -20,6 +20,9 @@
 #ifndef PRIMUS_DIALECT_PRIMUS_OPS_H
 #define PRIMUS_DIALECT_PRIMUS_OPS_H
 
+#include "mlir/Interfaces/InferTypeOpInterface.h"
+#include "mlir/Interfaces/SideEffectInterfaces.h"
+#include "mlir/IR/OpDefinition.h"
 
 #define GET_OP_CLASSES
 #include "primus/dialects/PrimusOps.h.inc"
