@@ -23,7 +23,7 @@
 extern "C" {
 #endif
 
-    MLIR_DECLARE_CAPI_DIALECT_REGISTRATION(Primus, primus);
+MLIR_DECLARE_CAPI_DIALECT_REGISTRATION(Primus, primus);
 
 #ifdef __cplusplus
 }

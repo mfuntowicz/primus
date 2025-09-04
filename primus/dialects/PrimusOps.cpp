@@ -18,3 +18,23 @@
 //
 
 #include "PrimusOps.h"
+
+#include <mlir/Dialect/Vector/IR/VectorOps.h>
+
+
+namespace mlir::primus {
+    LogicalResult RotaryOp::verify() {
+        auto adaptor = RotaryOp::Adaptor(getOperands());
+
+        // Inputs
+        // Cosine and sinus tensors are of the same shape as defined in the PrimusOps.td
+        const auto xTy = dyn_cast<RankedTensorType>(adaptor.getX().getType());
+        const auto cosTy = dyn_cast<RankedTensorType>(adaptor.getCos().getType());
+
+        // Both `x` and `cosinus` tensors trailing dimension should match
+        if (xTy.getShape().back() != cosTy.getShape().back())
+            return failure();
+
+        return success();
+    }
+}

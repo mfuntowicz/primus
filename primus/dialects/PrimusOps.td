@@ -38,23 +38,36 @@ def Primus_Dialect : Dialect {
 class Primus_Op<string mnemonic, list<Trait> traits = []>
     : Op<Primus_Dialect, mnemonic, traits> {}
 
+class Primus_ElementwiseOp<string mnemonic>
+    : Primus_Op<mnemonic, [Elementwise, InferShapedTypeOpInterface, NoMemoryEffect, Scalarizable, Vectorizable, Tensorizable]> {}
 
-def Primus_RotaryOp : Primus_Op<"rotary", [Elementwise, InferShapedTypeOpInterface, NoMemoryEffect]> {
+
+def Primus_RotaryOp : Primus_ElementwiseOp<"rotary"> {
  let summary = "Rotary embedding kernel";
   let description = [{
-    Performs element-wise rotary operation on `operand` tensor and produces a `result` tensor.
+    Performs element-wise rotary operation on `operand` tensor according to the cosinus and sinus frequencies table
+    provided and write the result to `out` tensor, inplace.
+
+    - `x` operand is expected to be rank-3 tensors of statically or dynamically shaped dimensions.
+    - `cos` and `sin` operands are expected to be rank-2 tensors of shape <max_sequence_length x hidden_dim> with statically shaped dimensions.
 
     Example:
     ```mlir
     %result = primus.rotary %operand : tensor<?x?x?xf32>
     ```
   }];
-  let arguments = (ins PrimusFloatTensor:$operand, PrimusFloatTensor:$cos, PrimusFloatTensor:$sin);
-  let results = (outs PrimusFloatTensor:$result);
-  let hasVerifier = 1;
 
+  let arguments = (ins
+    Arg<PrimusRank3FloatTensor, "the source tensor", []>:$x,
+    Arg<PrimusStaticRank2FloatTensor, "the cosinus frequencies table", []>:$cos,
+    Arg<PrimusStaticRank2FloatTensor, "the sinus frequencies table", []>:$sin
+  );
+
+  let results = (outs PrimusFloatTensor:$result);
+
+  let hasVerifier = 1;
   let assemblyFormat = [{
-    `(` $operand `,` $cos `,` $sin `)` attr-dict `:` custom<SameOperandsAndResultType>(type($operand), type($cos), type($sin), type($result))
+    `(` $x `,` $cos `,` $sin `)` attr-dict `:` custom<SameOperandsAndResultShape>(type($x), type($result)) `,` custom<SameOperandsAndResultShape>(type($cos), type($sin))
   }];
 }
 
