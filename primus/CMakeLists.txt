@@ -1,1 +1,2 @@
 add_subdirectory(dialects)
+add_subdirectory(integrations)
