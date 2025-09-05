@@ -1,3 +1,4 @@
 add_subdirectory(conversions)
 add_subdirectory(dialects)
 add_subdirectory(integrations)
+add_subdirectory(tools)
