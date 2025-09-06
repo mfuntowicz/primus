@@ -18,6 +18,28 @@ add_mlir_library(PrimusBase
         MLIRSupport
 )
 
+add_mlir_dialect_library(PrimusRegister
+        PARTIAL_SOURCES_INTENDED
+        Register.cpp
+
+        DEPENDS
+        PrimusOpsIncGen
+
+        LINK_LIBS PUBLIC
+        PrimusOps
+        StablehloOps
+        MLIRFuncDialect
+        MLIRIR
+)
+
+add_mlir_dialect_library(PrimusAssemblyFormat
+        PARTIAL_SOURCES_INTENDED
+        AssemblyFormat.cpp
+
+        LINK_LIBS PUBLIC
+        PrimusBase
+        MLIRIR
+)
 
 set(LLVM_TARGET_DEFINITIONS PrimusOps.td)
 mlir_tablegen(PrimusOps.h.inc -gen-op-decls)
@@ -33,7 +55,10 @@ add_mlir_dialect_library(PrimusOps
         PrimusOpsIncGen
 
         LINK_LIBS PUBLIC
+        PrimusAssemblyFormat
         PrimusBase
+        StablehloAssemblyFormat
+        StablehloOps
         MLIRInferTypeOpInterface
         MLIRIR
         MLIRQuantDialect

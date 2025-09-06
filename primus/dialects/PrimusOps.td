@@ -67,7 +67,7 @@ def Primus_RotaryOp : Primus_ElementwiseOp<"rotary"> {
 
   let hasVerifier = 1;
   let assemblyFormat = [{
-    `(` $x `,` $cos `,` $sin `)` attr-dict `:` custom<SameOperandsAndResultShape>(type($x), type($result)) `,` custom<SameOperandsAndResultShape>(type($cos), type($sin))
+    `(` $x `,` $cos `,` $sin `)` attr-dict `:` custom<SameOperandsAndResultType>(type($x), type($result)) `,` custom<SameOperandsAndResultType>(type($cos), type($sin))
   }];
 }
 

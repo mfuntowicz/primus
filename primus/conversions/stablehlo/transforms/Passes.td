@@ -3,9 +3,9 @@
 
 include "mlir/Pass/PassBase.td"
 
-def StablehloLegalizeToLinalgPass
-    : Pass<"stablehlo-legalize-to-linalg"> {
-  let summary = "Legalize StableHLO to LinAlg";
+def PrimusLegalizeToStablehloPass
+    : Pass<"primus-legalize-to-stablehlo"> {
+  let summary = "Legalize Primus to Stablehlo";
   let dependentDialects = [
     "mlir::bufferization::BufferizationDialect",
     "mlir::complex::ComplexDialect",
@@ -15,15 +15,9 @@ def StablehloLegalizeToLinalgPass
     "mlir::scf::SCFDialect",
     "mlir::shape::ShapeDialect",
     "mlir::sparse_tensor::SparseTensorDialect",
+    "mlir::stablehlo::StablehloDialect"
   ];
-  let options = [Option<"enablePrimitiveOps", "enable-primitive-ops", "bool",
-                        /*default=*/"false",
-                        "Lower to primitive Linalg ops (map, reduce and "
-                        "transpose) when possible, instead of linalg.generic">,
-                 Option<"enableSparseOps", "enable-sparse-ops", "bool",
-                        /*default=*/"false",
-                        "Lower to Sparse Tensor ops (sparse_tensor.concatenate)"
-                        "when possible, instead of linalg.generic">];
+  let options = [];
 }
 
 #endif  // PRIMUS_TO_LINALG_PASSES

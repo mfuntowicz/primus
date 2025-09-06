@@ -26,13 +26,11 @@
 #include "primus/dialects/BaseAttrInterfaces.h.inc"
 
 namespace mlir::primus {
-
     // Inspired from StableHLO SpeculatableIfStaticDimInOutputIsStaticInInputImplTrait
     // href: https://github.com/openxla/stablehlo/blob/main/stablehlo/dialect/Base.h#L494C8-L494C63
-    template <typename ConcreteType>
+    template<typename ConcreteType>
     struct SpeculatableIfStaticDimInOutputIsStaticInInputImplTrait
-        : OpTrait::TraitBase<ConcreteType, SpeculatableIfStaticDimInOutputIsStaticInInputImplTrait> {
-
+            : OpTrait::TraitBase<ConcreteType, SpeculatableIfStaticDimInOutputIsStaticInInputImplTrait> {
         // An elementwise op is not speculatable if a dimension of the result
         // type is static while the corresponding dimension in the input type is
         // dynamic. Indeed, the input dimension could differ at runtime.
@@ -45,7 +43,8 @@ namespace mlir::primus {
             auto op = this->getOperation();
             auto inputType = cast<RankedTensorType>(op->getOperand(0).getType());
 
-            for (auto resultType = cast<RankedTensorType>(op->getResult(0).getType()); size_t i : llvm::seq(resultType.getRank())) {
+            for (auto resultType = cast<RankedTensorType>(op->getResult(0).getType()); size_t i: llvm::seq(
+                     resultType.getRank())) {
                 if (!resultType.isDynamicDim(i) && inputType.isDynamicDim(i))
                     return Speculation::NotSpeculatable;
             }

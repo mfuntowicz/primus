@@ -19,22 +19,36 @@
 
 #include "PrimusOps.h"
 
+#include <mlir/IR/OpDefinition.h>
 #include <mlir/Dialect/Vector/IR/VectorOps.h>
-
+#include "primus/dialects/AssemblyFormat.h"
 
 namespace mlir::primus {
+
+    PrimusDialect::PrimusDialect(MLIRContext *context)
+        : Dialect(getDialectNamespace(), context, TypeID::get<PrimusDialect>()) {
+        addOperations<
+#define GET_OP_LIST
+#include "primus/dialects/PrimusOps.cpp.inc"
+        >();
+    }
+
+
     LogicalResult RotaryOp::verify() {
-        auto adaptor = RotaryOp::Adaptor(getOperands());
-
-        // Inputs
-        // Cosine and sinus tensors are of the same shape as defined in the PrimusOps.td
-        const auto xTy = dyn_cast<RankedTensorType>(adaptor.getX().getType());
-        const auto cosTy = dyn_cast<RankedTensorType>(adaptor.getCos().getType());
-
-        // Both `x` and `cosinus` tensors trailing dimension should match
-        if (xTy.getShape().back() != cosTy.getShape().back())
-            return failure();
+        // auto adaptor = RotaryOpAdaptor(getOp());
+        //
+        // // Inputs
+        // // Cosine and sinus tensors are of the same shape as defined in the PrimusOps.td
+        // const auto xTy = dyn_cast<RankedTensorType>(adaptor.getX().getType());
+        // const auto cosTy = dyn_cast<RankedTensorType>(adaptor.getCos().getType());
+        //
+        // // Both `x` and `cosinus` tensors trailing dimension should match
+        // if (xTy.getShape().back() != cosTy.getShape().back())
+        //     return failure();
 
         return success();
     }
 }
+
+#define GET_OP_CLASSES
+#include "primus/dialects/PrimusOps.cpp.inc"

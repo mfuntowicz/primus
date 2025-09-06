@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 23)
 # Build variables
 set(PRIMUS_LLVM_BUILD_DIR CACHE STRING "Path to LLVM build")
 option(PRIMUS_ENABLE_BINDINGS_PYTHON "Enable building the python binding" OFF)
+option(PRIMUS_ENABLE_LLD "Use LLD as linker if available" OFF)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
@@ -29,7 +30,9 @@ include_directories(${MLIR_INCLUDE_DIRS})
 #-------------------------------------------------------------------------------
 set(STABLEHLO_BUILD_EMBEDDED ON)
 set(STABLEHLO_ENABLE_BINDINGS_PYTHON ${PRIMUS_ENABLE_BINDINGS_PYTHON})
-add_subdirectory(third-party/stablehlo)
+add_subdirectory("third-party/stablehlo")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/third-party/stablehlo")
+include_directories("${CMAKE_BINARY_DIR}/third-party/stablehlo")
 
 #-------------------------------------------------------------------------------
 # Python configuration
@@ -39,6 +42,16 @@ if (PRIMUS_ENABLE_BINDINGS_PYTHON)
     mlir_configure_python_dev_packages()
 endif ()
 
+#-------------------------------------------------------------------------------
+# Performance configuration
+#-------------------------------------------------------------------------------
+
+include(CheckCXXCompilerFlag)
+include(CheckLinkerFlag)
+if (PRIMUS_ENABLE_LLD)
+    message(STATUS "Enabling LLD as the linker")
+    add_link_options("-fuse-ld=lld")
+endif ()
 
 #-------------------------------------------------------------------------------
 # Directory setup
@@ -46,6 +59,5 @@ endif ()
 set(PRIMUS_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(PRIMUS_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
 set(PRIMUS_TOOLS_DIR ${CMAKE_BINARY_DIR}/bin)
-
 
 add_subdirectory(primus)

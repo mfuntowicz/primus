@@ -20,11 +20,40 @@
 #ifndef PRIMUS_DIALECT_PRIMUS_OPS_H
 #define PRIMUS_DIALECT_PRIMUS_OPS_H
 
+#include "llvm/ADT/StringRef.h"
+#include "mlir/Dialect/Quant/IR/QuantTypes.h"
+#include "mlir/Dialect/Shape/IR/Shape.h"
+#include "mlir/IR/Attributes.h"
+#include "mlir/IR/Block.h"
+#include "mlir/IR/Builders.h"
+#include "mlir/IR/BuiltinAttributes.h"
+#include "mlir/IR/BuiltinTypes.h"
+#include "mlir/IR/Dialect.h"
+#include "mlir/IR/DialectImplementation.h"
+#include "mlir/IR/Location.h"
+#include "mlir/IR/MLIRContext.h"
+#include "mlir/IR/OpDefinition.h"
+#include "mlir/IR/Operation.h"
+#include "mlir/IR/Region.h"
+#include "mlir/IR/TensorEncoding.h"
+#include "mlir/IR/TypeUtilities.h"
+#include "mlir/IR/Types.h"
 #include "mlir/Interfaces/InferTypeOpInterface.h"
 #include "mlir/Interfaces/SideEffectInterfaces.h"
+#include "mlir/Support/LLVM.h"
+#include "mlir/Support/LogicalResult.h"
 #include "mlir/IR/OpDefinition.h"
+
+namespace mlir::primus {
+    class PrimusDialect final : public mlir::Dialect {
+    public:
+        explicit PrimusDialect(MLIRContext *context);
+        static StringRef getDialectNamespace() { return "primus"; }
+    };
+}
 
 #define GET_OP_CLASSES
 #include "primus/dialects/PrimusOps.h.inc"
+
 
 #endif //PRIMUS_DIALECT_PRIMUS_OPS_H
