@@ -10,6 +10,15 @@ declare_mlir_dialect_python_bindings(
         SOURCES dialects/primus.py
         DIALECT_NAME primus)
 
+################################################################################
+# Extensions
+################################################################################
+
+## The following options are used specifically for compiling nanobind codebase.
+add_compile_options(-Wno-error=cast-qual -Wno-error=nested-anon-types
+        -Wno-error=extra-semi -Wno-error=zero-length-array
+        -Wno-error=covered-switch-default)
+
 
 ###############################################################################
 # Generate packages and shared libraries

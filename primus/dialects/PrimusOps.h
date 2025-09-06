@@ -45,7 +45,7 @@
 #include "mlir/IR/OpDefinition.h"
 
 namespace mlir::primus {
-    class PrimusDialect final : public mlir::Dialect {
+    class PrimusDialect : public mlir::Dialect {
     public:
         explicit PrimusDialect(MLIRContext *context);
         static StringRef getDialectNamespace() { return "primus"; }

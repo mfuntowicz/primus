@@ -27,9 +27,7 @@ add_mlir_dialect_library(PrimusRegister
 
         LINK_LIBS PUBLIC
         PrimusOps
-        StablehloOps
         MLIRFuncDialect
-        MLIRIR
 )
 
 add_mlir_dialect_library(PrimusAssemblyFormat

@@ -26,8 +26,7 @@
 #include "stablehlo/dialect/Register.h"
 #include "stablehlo/transforms/Passes.h"
 #include "stablehlo/transforms/optimization/Passes.h"
-// #include "primus/dialects/PrimusOps.h"
-// #include "primus/conversions/stablehlo/transforms/Passes.h"
+#include "primus/conversions/stablehlo/transforms/Passes.h"
 #include "primus/dialects/Register.h"
 
 int main(const int argc, char **argv) {
@@ -36,7 +35,7 @@ int main(const int argc, char **argv) {
     mlir::stablehlo::registerPasses();
     mlir::stablehlo::registerOptimizationPasses();
     mlir::stablehlo::registerStablehloLinalgTransformsPasses();
-    // mlir::primus::registerPrimusLegalizeToStablehloPass();
+    mlir::primus::registerPrimusLegalizeToStablehloPass();
 
     mlir::DialectRegistry registry;
     mlir::registerAllDialects(registry);

@@ -17,6 +17,6 @@
 #include "primus/integrations/c/PrimusDialect.h"
 
 #include "mlir/CAPI/Registration.h"
-#include "primus/dialects/PrimusDialect.h"
+#include "primus/dialects/PrimusOps.h"
 
 MLIR_DEFINE_CAPI_DIALECT_REGISTRATION(Primus, primus, mlir::primus::PrimusDialect)

@@ -21,7 +21,6 @@
 
 #include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/Dialect/Quant/IR/Quant.h"
-#include "mlir/Dialect/SparseTensor/IR/SparseTensor.h"
 #include "mlir/IR/DialectRegistry.h"
 #include "stablehlo/dialect/StablehloOps.h"
 #include "primus/dialects/PrimusOps.h"
@@ -29,12 +28,8 @@
 namespace mlir::primus {
     void registerAllDialects(DialectRegistry &registry) {
         // clang-format off
-        registry.insert<func::FuncDialect,
-                        quant::QuantDialect,
-                        sparse_tensor::SparseTensorDialect,
-                        stablehlo::StablehloDialect>();
-
-        registry.insert<PrimusDialect>();
+        registry.insert<func::FuncDialect, quant::QuantDialect, stablehlo::StablehloDialect>();
+        registry.insert<primus::PrimusDialect>();
         // clang-format on
     }
 }

@@ -24,16 +24,6 @@
 #include "primus/dialects/AssemblyFormat.h"
 
 namespace mlir::primus {
-
-    PrimusDialect::PrimusDialect(MLIRContext *context)
-        : Dialect(getDialectNamespace(), context, TypeID::get<PrimusDialect>()) {
-        addOperations<
-#define GET_OP_LIST
-#include "primus/dialects/PrimusOps.cpp.inc"
-        >();
-    }
-
-
     LogicalResult RotaryOp::verify() {
         // auto adaptor = RotaryOpAdaptor(getOp());
         //
@@ -47,6 +37,14 @@ namespace mlir::primus {
         //     return failure();
 
         return success();
+    }
+
+    PrimusDialect::PrimusDialect(MLIRContext *context)
+        : Dialect(getDialectNamespace(), context, TypeID::get<PrimusDialect>()) {
+        addOperations<
+#define GET_OP_LIST
+#include "primus/dialects/PrimusOps.cpp.inc"
+        >();
     }
 }
 

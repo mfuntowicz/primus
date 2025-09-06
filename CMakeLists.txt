@@ -8,6 +8,8 @@ set(PRIMUS_LLVM_BUILD_DIR CACHE STRING "Path to LLVM build")
 option(PRIMUS_ENABLE_BINDINGS_PYTHON "Enable building the python binding" OFF)
 option(PRIMUS_ENABLE_LLD "Use LLD as linker if available" OFF)
 
+set(CMAKE_CXX_FLAGS "-fno-rtti")
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
@@ -45,7 +47,7 @@ endif ()
 #-------------------------------------------------------------------------------
 # Performance configuration
 #-------------------------------------------------------------------------------
-
+include(HandleLLVMOptions)
 include(CheckCXXCompilerFlag)
 include(CheckLinkerFlag)
 if (PRIMUS_ENABLE_LLD)
