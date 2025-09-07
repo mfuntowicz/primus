@@ -42,7 +42,7 @@ class Primus_ElementwiseOp<string mnemonic>
     : Primus_Op<mnemonic, [Elementwise, InferShapedTypeOpInterface, NoMemoryEffect, Scalarizable, Vectorizable, Tensorizable]> {}
 
 
-def Primus_RotaryOp : Primus_ElementwiseOp<"rotary"> {
+def Primus_RotaryOp : Primus_Op<"rotary", [InferShapedTypeOpInterface, NoMemoryEffect]> {
  let summary = "Rotary embedding kernel";
   let description = [{
     Performs element-wise rotary operation on `operand` tensor according to the cosinus and sinus frequencies table
