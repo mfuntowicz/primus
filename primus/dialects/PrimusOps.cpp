@@ -24,17 +24,31 @@
 #include "primus/dialects/AssemblyFormat.h"
 
 namespace mlir::primus {
+    /**
+     * Ensure the following requirements are met:
+     * - `x` input dimensions can be dynamic except the last one (fastest moving)
+     * - `x` latest dimension is known and even
+     * - `x`, `cos` and `sin` have the same last dimension
+     * @return
+     */
     LogicalResult RotaryOp::verify() {
-        // auto adaptor = RotaryOpAdaptor(getOp());
-        //
-        // // Inputs
-        // // Cosine and sinus tensors are of the same shape as defined in the PrimusOps.td
-        // const auto xTy = dyn_cast<RankedTensorType>(adaptor.getX().getType());
-        // const auto cosTy = dyn_cast<RankedTensorType>(adaptor.getCos().getType());
-        //
-        // // Both `x` and `cosinus` tensors trailing dimension should match
-        // if (xTy.getShape().back() != cosTy.getShape().back())
-        //     return failure();
+        const auto x = dyn_cast<RankedTensorType>(getX().getType());
+        if (x.isDynamicDim(x.getRank() - 1)) {
+            emitOpError("operand `x` last dimension should be static");
+            return failure();
+        }
+
+        if (x.getShape().back() % 2 != 0) {
+            emitOpError("operand `x` last dimension should be divisible by 2");
+            return failure();
+        }
+
+        const auto cos = dyn_cast<RankedTensorType>(getCos().getType());
+        const auto sin = dyn_cast<RankedTensorType>(getSin().getType());
+        if (!llvm::all_equal({x.getShape().back(), cos.getShape().back(), sin.getShape().back()})) {
+            emitOpError("operands `x`, `cos` and `sin` should have the same trailing dimension value");
+            return failure();
+        }
 
         return success();
     }
