@@ -3,6 +3,8 @@ mlir_tablegen(Passes.h.inc -gen-pass-decls -name PrimusStablehloTransforms)
 add_public_tablegen_target(PrimusStablehloTransformsPassIncGen)
 
 add_mlir_library(PrimusStablehloTransforms
+        LegalizeToStablehloUtils.h
+        LegalizeToStablehloUtils.cpp
         PrimusLegalizeToStablehlo.cpp
         PrimusToStablehloElementwise.cpp
         Rewriters.h
@@ -13,6 +15,7 @@ add_mlir_library(PrimusStablehloTransforms
 
         LINK_LIBS PUBLIC
         StablehloBase
+        StablehloBuilder
         StablehloOps
         PrimusBase
         PrimusOps

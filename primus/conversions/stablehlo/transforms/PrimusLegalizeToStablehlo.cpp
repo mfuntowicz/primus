@@ -46,16 +46,23 @@ namespace mlir::primus {
         class PrimusLegalizeToStablehloPass final : public impl::PrimusLegalizeToStablehloPassBase<PrimusLegalizeToStablehloPass> {
             std::shared_ptr<ConversionTarget> target;
             FrozenRewritePatternSet patterns;
-            TypeConverter converter;
 
         public:
             using PrimusLegalizeToStablehloPassBase::PrimusLegalizeToStablehloPassBase;
 
             LogicalResult initialize(MLIRContext *context) override {
                 target = std::make_shared<ConversionTarget>(*context);
+                target->addLegalDialect<
+                    bufferization::BufferizationDialect,
+                    arith::ArithDialect,
+                    math::MathDialect,
+                    shape::ShapeDialect,
+                    stablehlo::StablehloDialect,
+                    tensor::TensorDialect
+                >();
 
                 RewritePatternSet patterns_(context);
-                populatePrimusToStablehloConversionPatterns(context, converter, &patterns_);
+                populatePrimusToStablehloConversionPatterns(context, &patterns_);
                 patterns = std::move(patterns_);
 
                 return success();
@@ -70,7 +77,7 @@ namespace mlir::primus {
     }
 
 
-    void populatePrimusToStablehloConversionPatterns(MLIRContext *ctx, TypeConverter &converter, RewritePatternSet *patterns) {
-        detail::populateElementwisePrimusToStablehloConversionPatterns(ctx, converter, patterns);
+    void populatePrimusToStablehloConversionPatterns(MLIRContext *ctx, RewritePatternSet *patterns) {
+        detail::populateElementwisePrimusToStablehloConversionPatterns(ctx, patterns);
     }
 }

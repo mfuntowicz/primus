@@ -30,7 +30,7 @@ namespace mlir::primus {
 
     /// Populates the patterns that convert from Primus to StableHLO on tensors.
     void populatePrimusToStablehloConversionPatterns(
-        MLIRContext *context, TypeConverter &typeConverter, RewritePatternSet *patterns);
+        MLIRContext *context, RewritePatternSet *patterns);
 
     //===----------------------------------------------------------------------===//
     // Fine-grained patterns used by the implementation.
@@ -38,8 +38,7 @@ namespace mlir::primus {
     namespace detail {
         /// Populates the patterns that convert from elementwise Primus ops to StableHLO
         /// on tensors.
-        void populateElementwisePrimusToStablehloConversionPatterns(
-            MLIRContext *context, TypeConverter &typeConverter, RewritePatternSet *patterns);
+        void populateElementwisePrimusToStablehloConversionPatterns(MLIRContext *context, RewritePatternSet *patterns);
     }
 }
 
