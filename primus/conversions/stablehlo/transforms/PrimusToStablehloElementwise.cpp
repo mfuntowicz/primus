@@ -17,7 +17,9 @@
 // Created by momo- on 9/5/2025.
 //
 
+#include <ranges>
 #include <tuple>
+#include <mlir/Dialect/Tensor/IR/Tensor.h>
 
 #include "mlir/IR/MLIRContext.h"
 #include "mlir/IR/PatternMatch.h"
@@ -36,7 +38,7 @@ namespace mlir::primus {
             SmallVector<Value> limitIndices;
             SmallVector<Value> strides;
         };
-        
+
         // SliceParams buildSliceParams(OpBuilder &builder, Location loc, Value input,
         //                            ArrayRef<int64_t> shape, int64_t chunkStart, int64_t chunkEnd) {
         //     SliceParams params;
@@ -95,18 +97,76 @@ namespace mlir::primus {
         // }
 
         struct RotaryOpConverter final : OpConversionPattern<RotaryOp> {
-            using OpConversionPattern<RotaryOp>::OpConversionPattern;
+            using OpConversionPattern::OpConversionPattern;
 
-            LogicalResult matchAndRewrite(RotaryOp op, OpAdaptor adaptor, ConversionPatternRewriter &rewriter) const override {
-                auto builder = MlirBuilder(rewriter, op.getLoc());
-                // auto [xHead, xTail] = chunkLastDimension(builder, adaptor.getX());
+            static llvm::SmallVector<int64_t, 4> getChunkedShape(const llvm::ArrayRef<int64_t> &shape) {
+                return {shape[0], shape[1], shape[2], shape[3] / 2};
+            }
 
-                llvm::outs() << "Converting " << op << "\n";
+            // LogicalResult matchAndRewrite(RotaryOp op, OpAdaptor adaptor, ConversionPatternRewriter &rewriter) const override {
+            //     auto builder = MlirBuilder(rewriter, op.getLoc());
+            //     auto xOp = MlirOp(builder, op.getX());
+            //     auto xTy = cast<RankedTensorType>(xOp.getType());
+            //
+            //     // Get dimensions of heading dimensions
+            //     auto xDims = \
+            //         std::views::iota(0, xTy.getRank())
+            //         | std::views::transform([&](auto rank) { return getDimensionAsTensor(xOp, rank, rewriter.getI64Type()); })
+            //         | std::ranges::to<llvm::SmallVector<MlirOp, 4>>();
+            //
+            //     auto rankOneTy = RankedTensorType::get({1}, rewriter.getI64Type());
+            //     auto xDim3 = stablehlo::Constant(builder, DenseIntElementsAttr::get(rankOneTy, {xTy.getDimSize(3)}));
+            //     auto xDim3Half = stablehlo::Constant(builder, DenseIntElementsAttr::get(rankOneTy, {xTy.getDimSize(3) / 2}));
+            //
+            //     // Constants
+            //     auto xZero = stablehlo::Constant(builder, DenseIntElementsAttr::get(rankOneTy, { 0l }));
+            //     auto xSlices = stablehlo::Constant(builder, {1, 1, 1, 1});
+            //     auto xChunkedTy = RankedTensorType::get(getChunkedShape(xTy.getShape()), xTy.getElementType());
+            //
+            //     // [0, 0, 0, 0], [xDim0, xDim1, xDim2, xDim3Half], [1, 1, 1, 1]
+            //     auto xHeadStarts = stablehlo::Constant(builder, {0, 0, 0, 0});
+            //     auto xHeadLimits = stablehlo::Concatenate(builder, {xDims[0], xDims[1], xDims[2], xDim3Half}, 0);
+            //     auto xHead = stablehlo::RealDynamicSlice(xChunkedTy, xOp, xHeadStarts, xHeadLimits, xSlices);
+            //
+            //     // [0, 0, 0, xDim3Half], [xDim0, xDim1, xDim2, xDim3], [1, 1, 1, 1]
+            //     auto xTailStarts = stablehlo::Concatenate(builder, {xZero, xZero, xZero, xDim3Half}, 0);
+            //     auto xTailLimits = stablehlo::Concatenate(builder, {xDims[0], xDims[1], xDims[2], xDim3}, 0);
+            //     auto xTail = stablehlo::RealDynamicSlice(xChunkedTy, xOp, xTailStarts, xTailLimits, xSlices);
+            //
+            //     // Rotate
+            //     auto xCos = MlirOp(builder, op.getCos());
+            //     auto xSin = MlirOp(builder, op.getSin());
+            //
+            //     auto xCosSinTy = cast<RankedTensorType>(xCos.getType());
+            //     auto xCosSinShape = xCosSinTy.getShape();
+            //
+            //     // Expand cos and sin (b, s, heads) -> (b, 1, s, heads)
+            //     auto xCosSinDims = \
+            //         std::views::iota(0, xCosSinTy.getRank())
+            //         | std::views::transform([&](auto rank) { return getDimensionAsTensor(xCos, rank, rewriter.getI64Type()); })
+            //         | std::ranges::to<llvm::SmallVector<MlirOp, 4>>();
+            //
+            //     auto xFreqsExpTy = RankedTensorType::get({xCosSinShape[0], xTy.getShape()[1], xCosSinShape[1], xCosSinShape[2]}, xCosSinTy.getElementType());
+            //     auto xFreqsExp = stablehlo::Concatenate(builder, {xCosSinDims[0], xDims[1], xCosSinDims[1], xCosSinDims[2]}, 0);
+            //
+            //     auto xCosExp = stablehlo::DynamicReshape(xFreqsExpTy, xCos, xFreqsExp);
+            //     auto xSinExp = stablehlo::DynamicReshape(xFreqsExpTy, xSin, xFreqsExp);
+            //
+            //     auto xHeadCos = stablehlo::Mul(xHead, xCosExp);
+            //     auto xTailSin = stablehlo::Mul(xTail, xSinExp);
+            //     auto xHeadRotated = stablehlo::Subtract(xHeadCos, xTailSin);
+            //
+            //     auto xTailCos = stablehlo::Mul(xTail, xCosExp);
+            //     auto xHeadSin = stablehlo::Mul(xHead, xSinExp);
+            //     auto xTailRotated = stablehlo::Add(xTailCos, xHeadSin);
+            //
+            //     auto xRotated = stablehlo::Concatenate(builder, {xHeadRotated, xTailRotated}, 3);
+            //     rewriter.replaceOp(op, xRotated.getValue());
+            //     return success();
+            // }
 
-                // auto xDim0 = getDimensionSizeI64(builder, op, 0);
-                auto op_ = MlirOp(builder, adaptor.getX());
-                auto xDim0 = stablehlo::GetDimensionSize(op_, 0);
-                rewriter.replaceOp(op, xDim0.getValue());
+            LogicalResult matchAndRewrite(RotaryOp op, OpAdaptor adaptor,
+                                          ConversionPatternRewriter &rewriter) const override {
                 return success();
             }
         };

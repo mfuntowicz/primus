@@ -29,24 +29,25 @@ namespace mlir::primus {
      * @param value
      * @return
      */
-    MlirOp createI64Constant(MlirBuilder& builder, const int64_t value);
+    MlirOp createI64Constant(MlirBuilder &builder, int64_t value);
 
     /**
      *
-     * @param builder
      * @param input
      * @param dim
+     * @param as
      * @return
      */
-    // MlirOp getDimensionSizeI64(MlirBuilder& builder, const Value input, const int64_t dim);
-    /**
- * Helper to get dimension size as i64 value
- */
-    inline MlirOp getDimensionSizeI64(MlirBuilder& builder, const Value input, const int64_t dim) {
-        auto op = MlirOp(builder, input);
-        return stablehlo::GetDimensionSize(op, dim);
-    }
+    MlirOp getDimensionAs(MlirOp &input, int64_t dim, IntegerType as);
 
+    /**
+     *
+     * @param input
+     * @param dim
+     * @param as
+     * @return
+     */
+    MlirOp getDimensionAsTensor(MlirOp &input, int64_t dim, IntegerType as);
 }
 
 

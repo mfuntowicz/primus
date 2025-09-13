@@ -19,9 +19,14 @@
 
 #include "PrimusOps.h"
 
+#include "llvm/ADT/TypeSwitch.h"
+#include <llvm/Support/Format.h>
 #include <mlir/IR/OpDefinition.h>
 #include <mlir/Dialect/Vector/IR/VectorOps.h>
 #include "primus/dialects/AssemblyFormat.h"
+
+#define GET_ATTRDEF_CLASSES
+#include "primus/dialects/PrimusAttrs.cpp.inc"
 
 namespace mlir::primus {
     /**
@@ -32,21 +37,21 @@ namespace mlir::primus {
      * @return
      */
     LogicalResult RotaryOp::verify() {
-        const auto x = dyn_cast<RankedTensorType>(getX().getType());
-        if (x.isDynamicDim(x.getRank() - 1)) {
-            emitOpError("operand `x` last dimension should be static");
+        const auto xTy = cast<RankedTensorType>(getX().getType());
+        if (!(xTy.getRank() == 4 && !xTy.isDynamicDim(3))) {
+            emitOpError("operand `x` should be a 4D tensor with static last dimension");
             return failure();
         }
 
-        if (x.getShape().back() % 2 != 0) {
+        if (xTy.getDimSize(3) % 2 != 0) {
             emitOpError("operand `x` last dimension should be divisible by 2");
             return failure();
         }
 
         const auto cos = dyn_cast<RankedTensorType>(getCos().getType());
         const auto sin = dyn_cast<RankedTensorType>(getSin().getType());
-        if (!llvm::all_equal({x.getShape().back(), cos.getShape().back(), sin.getShape().back()})) {
-            emitOpError("operands `x`, `cos` and `sin` should have the same trailing dimension value");
+        if (cos.getShape() != sin.getShape()) {
+            emitOpError("operands `cos` and `sin` should have the same trailing dimension value");
             return failure();
         }
 
@@ -55,11 +60,15 @@ namespace mlir::primus {
 
     PrimusDialect::PrimusDialect(MLIRContext *context)
         : Dialect(getDialectNamespace(), context, TypeID::get<PrimusDialect>()) {
-        addOperations<
+        addOperations <
+
 #define GET_OP_LIST
 #include "primus/dialects/PrimusOps.cpp.inc"
-        >();
-    }
+    >
+    (
+    );
+}
+
 }
 
 #define GET_OP_CLASSES

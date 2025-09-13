@@ -13,11 +13,11 @@ set(LIBS
         MLIRRegisterAllDialects
         MLIRRegisterAllExtensions
         MLIRRegisterAllPasses
-        StablehloRegister
-        StablehloPasses
+        #        StablehloRegister
+        #        StablehloPasses
         PrimusRegister
         PrimusOps
-        PrimusStablehloTransforms
+        PrimusLinalgTransforms
 )
 add_llvm_executable(primus-opt PrimusOptMain.cpp)
 llvm_update_compile_flags(primus-opt)

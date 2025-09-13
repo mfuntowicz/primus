@@ -1,11 +1,11 @@
-#ifndef PRIMUS_TO_STABLEHLO_PASSES
-#define PRIMUS_TO_STABLEHLO_PASSES
+#ifndef PRIMUS_TO_LINALG_PASSES
+#define PRIMUS_TO_LINALG_PASSES
 
 include "mlir/Pass/PassBase.td"
 
-def PrimusLegalizeToStablehloPass
-    : Pass<"primus-legalize-to-stablehlo"> {
-  let summary = "Legalize Primus to Stablehlo";
+def PrimusLegalizeToLinalgPass
+    : Pass<"primus-legalize-to-linalg"> {
+  let summary = "Legalize Primus to Linalg";
   let dependentDialects = [
     "mlir::arith::ArithDialect",
     "mlir::bufferization::BufferizationDialect",
@@ -14,9 +14,9 @@ def PrimusLegalizeToStablehloPass
     "mlir::math::MathDialect",
     "mlir::memref::MemRefDialect",
     "mlir::shape::ShapeDialect",
-    "mlir::stablehlo::StablehloDialect"
+    "mlir::tensor::TensorDialect"
   ];
   let options = [];
 }
 
-#endif  // PRIMUS_TO_STABLEHLO_PASSES
+#endif //PRIMUS_TO_LINALG_PASSES

@@ -36,6 +36,10 @@ def Primus_Float : AnyTypeOf<[
 //===----------------------------------------------===//
 def PrimusFloatTensor: RankedTensorOf<[Primus_Float]>;
 def PrimusStaticRank2FloatTensor : RankedTensorOf<[Primus_Float], [HasStaticShapePred, HasAnyRankOfPred<[2]>], "statically shaped 2-dimensional float tensor">;
+
+def PrimusRank1FloatTensor : RankedTensorOf<[Primus_Float], [HasAnyRankOfPred<[1]>], "dynamically shaped 1-dimensional float tensor">;
+def PrimusRank2FloatTensor : RankedTensorOf<[Primus_Float], [HasAnyRankOfPred<[2]>], "dynamically shaped 2-dimensional float tensor">;
 def PrimusRank3FloatTensor : RankedTensorOf<[Primus_Float], [HasAnyRankOfPred<[3]>], "dynamically shaped 3-dimensional float tensor">;
+def PrimusRank4FloatTensor : RankedTensorOf<[Primus_Float], [HasAnyRankOfPred<[4]>], "dynamically shaped 4-dimensional float tensor">;
 
 #endif //PRIMUS_DIALECT_BASE

@@ -44,10 +44,14 @@
 #include "mlir/Support/LogicalResult.h"
 #include "mlir/IR/OpDefinition.h"
 
+#define GET_ATTRDEF_CLASSES
+#include "primus/dialects/PrimusAttrs.h.inc"
+
 namespace mlir::primus {
     class PrimusDialect : public mlir::Dialect {
     public:
         explicit PrimusDialect(MLIRContext *context);
+
         static StringRef getDialectNamespace() { return "primus"; }
     };
 }

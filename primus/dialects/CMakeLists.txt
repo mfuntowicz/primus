@@ -42,6 +42,8 @@ add_mlir_dialect_library(PrimusAssemblyFormat
 set(LLVM_TARGET_DEFINITIONS PrimusOps.td)
 mlir_tablegen(PrimusOps.h.inc -gen-op-decls)
 mlir_tablegen(PrimusOps.cpp.inc -gen-op-defs)
+mlir_tablegen(PrimusAttrs.h.inc -gen-attrdef-decls)
+mlir_tablegen(PrimusAttrs.cpp.inc -gen-attrdef-defs)
 add_public_tablegen_target(PrimusOpsIncGen)
 add_dependencies(mlir-headers PrimusOpsIncGen)
 

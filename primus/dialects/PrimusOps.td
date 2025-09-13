@@ -38,12 +38,11 @@ def Primus_Dialect : Dialect {
 class Primus_Op<string mnemonic, list<Trait> traits = []>
     : Op<Primus_Dialect, mnemonic, traits> {}
 
-class Primus_ElementwiseOp<string mnemonic>
-    : Primus_Op<mnemonic, [Elementwise, InferShapedTypeOpInterface, NoMemoryEffect, Scalarizable, Vectorizable, Tensorizable]> {}
 
+include "primus/dialects/PrimusAttrs.td"
 
 def Primus_RotaryOp : Primus_Op<"rotary", [InferShapedTypeOpInterface, NoMemoryEffect]> {
- let summary = "Rotary embedding kernel";
+  let summary = "Rotary embedding kernel";
   let description = [{
     Performs element-wise rotary operation on `operand` tensor according to the cosinus and sinus frequencies table
     provided and write the result to `out` tensor, inplace.
@@ -58,16 +57,16 @@ def Primus_RotaryOp : Primus_Op<"rotary", [InferShapedTypeOpInterface, NoMemoryE
   }];
 
   let arguments = (ins
-    Arg<PrimusRank3FloatTensor, "the source tensor", []>:$x,
-    Arg<PrimusStaticRank2FloatTensor, "the cosinus frequencies table", []>:$cos,
-    Arg<PrimusStaticRank2FloatTensor, "the sinus frequencies table", []>:$sin
+    Arg<PrimusRank4FloatTensor, "the source tensor", []>:$x,
+    Arg<PrimusRank3FloatTensor, "the cosinus frequencies table", []>:$cos,
+    Arg<PrimusRank3FloatTensor, "the sinus frequencies table", []>:$sin
   );
 
-  let results = (outs PrimusFloatTensor:$result);
+  let results = (outs PrimusRank4FloatTensor:$result);
 
-  let hasVerifier = 1;
+  let hasVerifier = true;
   let assemblyFormat = [{
-    `(` $x `,` $cos `,` $sin `)` attr-dict `:` custom<SameOperandsAndResultType>(type($x), type($result)) `,` custom<SameOperandsAndResultType>(type($cos), type($sin))
+    `(` $x `,` $cos `,` $sin `)` attr-dict `:` functional-type(operands, results)
   }];
 }
 

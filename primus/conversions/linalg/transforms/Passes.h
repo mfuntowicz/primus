@@ -1,4 +1,4 @@
-// Copyright Morgan Funtowicz (c) 2025.
+// Copyright Morgan Funtowicz (c) 2025. 
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,12 +13,27 @@
 // limitations under the License.
 // ==============================================================================*
 
-#ifndef PRIMUS_DIALECT_OPTIMUS_ATTRS
-#define PRIMUS_DIALECT_OPTIMUS_ATTRS
+//
+// Created by momo- on 9/5/2025.
+//
 
-include "mlir/IR/OpBase.td"
+#ifndef PRIMUS_CONVERSIONS_LINALG_TRANSFORMS_PASSES_H
+#define PRIMUS_CONVERSIONS_LINALG_TRANSFORMS_PASSES_H
+
+#include <memory>
+#include "mlir/Pass/Pass.h"
+
+namespace mlir {
+    class ModuleOp;
+
+    namespace primus {
+
+#define GEN_PASS_DECL
+#define GEN_PASS_REGISTRATION
+#include "primus/conversions/linalg/transforms/Passes.h.inc"
+
+    }  // namespace primus
+}  // namespace mlir
 
 
-
-
-#endif //PRIMUS_DIALECT_OPTIMUS_ATTRS
+#endif //PRIMUS_CONVERSIONS_LINALG_TRANSFORMS_PASSES_H

@@ -19,8 +19,10 @@
 
 #include "Register.h"
 
+#include "mlir/Dialect/Bufferization/IR/Bufferization.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
-#include "mlir/Dialect/Quant/IR/Quant.h"
+#include "mlir/Dialect/Index/IR/IndexDialect.h"
+#include "mlir/Dialect/Shape/IR/Shape.h"
 #include "mlir/IR/DialectRegistry.h"
 #include "stablehlo/dialect/StablehloOps.h"
 #include "primus/dialects/PrimusOps.h"
@@ -28,7 +30,13 @@
 namespace mlir::primus {
     void registerAllDialects(DialectRegistry &registry) {
         // clang-format off
-        registry.insert<func::FuncDialect, quant::QuantDialect, stablehlo::StablehloDialect>();
+        registry.insert<
+            bufferization::BufferizationDialect,
+            func::FuncDialect,
+            index::IndexDialect,
+            shape::ShapeDialect,
+            stablehlo::StablehloDialect
+        >();
         registry.insert<primus::PrimusDialect>();
         // clang-format on
     }

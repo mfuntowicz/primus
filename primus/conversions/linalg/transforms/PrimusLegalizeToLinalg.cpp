@@ -1,4 +1,4 @@
-// Copyright Morgan Funtowicz (c) 2025.
+// Copyright Morgan Funtowicz (c) 2025. 
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 // ==============================================================================*
 
 //
-// Created by momo- on 9/4/2025.
+// Created by momo- on 9/12/2025.
 //
 
 #include "mlir/Dialect/Arith/IR/Arith.h"
@@ -27,22 +27,20 @@
 #include "mlir/Dialect/Tensor/IR/Tensor.h"
 #include "mlir/Pass/Pass.h"
 #include "mlir/Transforms/DialectConversion.h"
-#include "stablehlo/dialect/StablehloOps.h"
-#include "primus/conversions/stablehlo/transforms/Passes.h"
-#include "primus/conversions/stablehlo/transforms/Rewriters.h"
+#include "primus/conversions/linalg/transforms/Passes.h"
+#include "primus/conversions/linalg/transforms/Rewriters.h"
 
 namespace mlir::primus {
-#define GEN_PASS_DEF_PRIMUSLEGALIZETOSTABLEHLOPASS
-#include "primus/conversions/stablehlo/transforms/Passes.h.inc"
+#define GEN_PASS_DEF_PRIMUSLEGALIZETOLINALGPASS
+#include "primus/conversions/linalg/transforms/Passes.h.inc"
 
     namespace {
-        class PrimusLegalizeToStablehloPass final : public impl::PrimusLegalizeToStablehloPassBase<
-                    PrimusLegalizeToStablehloPass> {
+        class PrimusLegalizeToLinalgPass final : public impl::PrimusLegalizeToLinalgPassBase<PrimusLegalizeToLinalgPass> {
             std::shared_ptr<ConversionTarget> target;
             FrozenRewritePatternSet patterns;
 
         public:
-            using PrimusLegalizeToStablehloPassBase::PrimusLegalizeToStablehloPassBase;
+            using PrimusLegalizeToLinalgPassBase::PrimusLegalizeToLinalgPassBase;
 
             LogicalResult initialize(MLIRContext *context) override {
                 target = std::make_shared<ConversionTarget>(*context);
@@ -52,12 +50,12 @@ namespace mlir::primus {
                     index::IndexDialect,
                     math::MathDialect,
                     shape::ShapeDialect,
-                    stablehlo::StablehloDialect,
+                    linalg::LinalgDialect,
                     tensor::TensorDialect
                 >();
 
                 RewritePatternSet patterns_(context);
-                populatePrimusToStablehloConversionPatterns(context, &patterns_);
+                mlir:primus::populatePrimusToLinalgConversionPatterns(context, &patterns_);
                 patterns = std::move(patterns_);
 
                 return success();
@@ -72,7 +70,7 @@ namespace mlir::primus {
     }
 
 
-    void populatePrimusToStablehloConversionPatterns(MLIRContext *ctx, RewritePatternSet *patterns) {
-        detail::populateElementwisePrimusToStablehloConversionPatterns(ctx, patterns);
+    void populatePrimusToLinalgConversionPatterns(MLIRContext *ctx, RewritePatternSet *patterns) {
+        detail::populatePrimusToLinalgConversionPatterns(ctx, patterns);
     }
 }
