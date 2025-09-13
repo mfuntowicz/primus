@@ -4,6 +4,7 @@ add_public_tablegen_target(PrimusLinalgTransformsPassIncGen)
 
 add_mlir_library(PrimusLinalgTransforms
         PrimusLegalizeToLinalg.cpp
+        PrimusRotaryToLinalg.cpp
         Rewriters.h
 
         DEPENDS

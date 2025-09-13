@@ -38,7 +38,7 @@ namespace mlir::primus {
     namespace detail {
         /// Populates the patterns that convert from elementwise Primus ops to Linalg
         /// on tensors.
-        void populatePrimusToLinalgConversionPatterns(MLIRContext *context, RewritePatternSet *patterns);
+        void populatePrimusRotaryToLinalgConversionPatterns(MLIRContext *context, RewritePatternSet *patterns);
     }
 }
 

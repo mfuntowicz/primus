@@ -55,7 +55,7 @@ namespace mlir::primus {
                 >();
 
                 RewritePatternSet patterns_(context);
-                mlir:primus::populatePrimusToLinalgConversionPatterns(context, &patterns_);
+                populatePrimusToLinalgConversionPatterns(context, &patterns_);
                 patterns = std::move(patterns_);
 
                 return success();
@@ -71,6 +71,6 @@ namespace mlir::primus {
 
 
     void populatePrimusToLinalgConversionPatterns(MLIRContext *ctx, RewritePatternSet *patterns) {
-        detail::populatePrimusToLinalgConversionPatterns(ctx, patterns);
+        detail::populatePrimusRotaryToLinalgConversionPatterns(ctx, patterns);
     }
 }
