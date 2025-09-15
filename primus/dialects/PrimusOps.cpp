@@ -51,7 +51,30 @@ namespace mlir::primus {
         const auto cos = dyn_cast<RankedTensorType>(getCos().getType());
         const auto sin = dyn_cast<RankedTensorType>(getSin().getType());
         if (cos.getShape() != sin.getShape()) {
-            emitOpError("operands `cos` and `sin` should have the same trailing dimension value");
+            emitOpError("operands `cos` and `sin` should have the same shape");
+            return failure();
+        }
+
+        // Attributes
+        if (xTy.getDimSize(3) != static_cast<int64_t>(getHeadSize())) {
+            emitOpError("operand `x` last dimension should match attribute `head_size`");
+            return failure();
+        }
+
+        if (cos.getDimSize(cos.getRank() - 1) != static_cast<int64_t>(getHeadSize()) / 2) {
+            emitOpError("operand `cos` last dimension should match attribute `head_size`");
+            return failure();
+        }
+
+        // This one should not be necessary as we are checking shape equality between cos and sin
+        // But it would provide a proper op error in case of ...
+        if (sin.getDimSize(sin.getRank() - 1) != static_cast<int64_t>(getHeadSize()) / 2) {
+            emitOpError("operand `sin` last dimension should match attribute `head_size`");
+            return failure();
+        }
+
+        if (getHeadSize() % 2 != 0) {
+            emitOpError("attribute `head_size` should be divisible by 2");
             return failure();
         }
 
@@ -66,6 +89,7 @@ namespace mlir::primus {
 #include "primus/dialects/PrimusOps.cpp.inc"
     >
     (
+    
     );
 }
 

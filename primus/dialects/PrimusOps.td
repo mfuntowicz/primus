@@ -38,7 +38,6 @@ def Primus_Dialect : Dialect {
 class Primus_Op<string mnemonic, list<Trait> traits = []>
     : Op<Primus_Dialect, mnemonic, traits> {}
 
-
 include "primus/dialects/PrimusAttrs.td"
 
 def Primus_RotaryOp : Primus_Op<"rotary", [InferShapedTypeOpInterface, NoMemoryEffect]> {
@@ -52,14 +51,16 @@ def Primus_RotaryOp : Primus_Op<"rotary", [InferShapedTypeOpInterface, NoMemoryE
 
     Example:
     ```mlir
-    %result = primus.rotary %operand : tensor<?x?x?xf32>
+    %result = primus.rotary(%x, %cos, %sin) { num_heads = 64, head_size = 64 }: (tensor<?x?x4096xf32>, tensor<?x32xf32>, tensor<?x32xf32>) -> tensor<?x?x4096xf32>
     ```
   }];
 
   let arguments = (ins
     Arg<PrimusRank4FloatTensor, "the source tensor", []>:$x,
     Arg<PrimusRank3FloatTensor, "the cosinus frequencies table", []>:$cos,
-    Arg<PrimusRank3FloatTensor, "the sinus frequencies table", []>:$sin
+    Arg<PrimusRank3FloatTensor, "the sinus frequencies table", []>:$sin,
+    I64Attr:$num_heads,
+    I64Attr:$head_size
   );
 
   let results = (outs PrimusRank4FloatTensor:$result);
