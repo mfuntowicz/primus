@@ -26,7 +26,6 @@
 #include "primus/dialects/PrimusOps.h"
 
 namespace mlir::primus {
-
     namespace {
         // Function to split the last dimension of a tensor into two equal parts
         std::pair<Value, Value> splitLastDimensionInTwo(
@@ -36,10 +35,10 @@ namespace mlir::primus {
             // The last dimension (axis 3) is always static
             const int64_t lastDimSize = shape[3];
             const int64_t halfSize = lastDimSize / 2;
-            
+
             // Create offsets and sizes for extract_slice
             SmallVector<OpFoldResult> offsets, sizes, strides;
-            
+
             for (int64_t i = 0; i < srcTy.getRank(); ++i) {
                 if (i == 3) {
                     // For dimension 3 (last dimension we're splitting)
@@ -56,35 +55,34 @@ namespace mlir::primus {
                 offsets.push_back(rewriter.getIndexAttr(0)); // Start at 0 for the first half
                 strides.push_back(rewriter.getIndexAttr(1));
             }
-            
+
             // Create the result type for both halves
             SmallVector<int64_t> halfShape(shape.begin(), shape.end());
             halfShape[3] = halfSize;
             auto halfType = RankedTensorType::get(halfShape, srcTy.getElementType());
-            
+
             // Extract first half
             Value firstHalf = rewriter.create<tensor::ExtractSliceOp>(
                 loc, halfType, src, offsets, sizes, strides);
-            
+
             // Update offset for the second half (starts at halfSize in dimension 3)
             offsets[3] = rewriter.getIndexAttr(halfSize);
-            
+
             // Extract second half
             Value secondHalf = rewriter.create<tensor::ExtractSliceOp>(
                 loc, halfType, src, offsets, sizes, strides);
-            
-            return { firstHalf, secondHalf };
+
+            return {firstHalf, secondHalf};
         }
 
         // Function to apply rotary embedding using linalg.generic
         Value applyRotary(
-            ConversionPatternRewriter &rewriter, 
-            const Location loc, 
-            Value x, 
-            Value cos, 
-            Value sin, 
+            ConversionPatternRewriter &rewriter,
+            const Location loc,
+            Value x,
+            Value cos,
+            Value sin,
             const RankedTensorType xTy) {
-
             // Chunk `x` in two equal parts
             auto [xHeadVal, xTailVal] = splitLastDimensionInTwo(rewriter, loc, x, xTy);
 
@@ -92,14 +90,14 @@ namespace mlir::primus {
             auto halfType = cast<RankedTensorType>(xHeadVal.getType());
             SmallVector<Value> halfDynamicSizes;
             SmallVector<Value> fullDynamicSizes;
-            
+
             for (int64_t i = 0; i < halfType.getRank(); ++i) {
                 if (ShapedType::isDynamic(halfType.getShape()[i])) {
                     Value dimSize = rewriter.create<tensor::DimOp>(loc, xHeadVal, i);
                     halfDynamicSizes.push_back(dimSize);
                 }
             }
-            
+
             for (int64_t i = 0; i < xTy.getRank(); ++i) {
                 if (ShapedType::isDynamic(xTy.getShape()[i])) {
                     Value dimSize = rewriter.create<tensor::DimOp>(loc, x, i);
@@ -114,7 +112,7 @@ namespace mlir::primus {
                 loc, halfType.getShape(), halfType.getElementType(), halfDynamicSizes);
 
             const auto rank = halfType.getRank();
-            
+
             // Create affine maps
             // For input tensors (xHeadVal, xTailVal, outputHead, outputTail)
             SmallVector<AffineExpr> inputExprs;
@@ -131,12 +129,12 @@ namespace mlir::primus {
             auto cosAffineMap = AffineMap::get(rank, 0, cosExprs, rewriter.getContext());
 
             SmallVector<AffineMap> indexingMaps = {
-                inputAffineMap,  // xHeadVal
-                inputAffineMap,  // xTailVal
-                cosAffineMap,    // cos (shared affine_map)
-                cosAffineMap,    // sin (shared affine_map)
-                inputAffineMap,  // outputHead
-                inputAffineMap   // outputTail
+                inputAffineMap, // xHeadVal
+                inputAffineMap, // xTailVal
+                cosAffineMap, // cos (shared affine_map)
+                cosAffineMap, // sin (shared affine_map)
+                inputAffineMap, // outputHead
+                inputAffineMap // outputTail
             };
 
             SmallVector<utils::IteratorType> iteratorTypes(rank, utils::IteratorType::parallel);
@@ -214,12 +212,13 @@ namespace mlir::primus {
         struct RotaryOpConverter final : OpConversionPattern<RotaryOp> {
             using OpConversionPattern::OpConversionPattern;
 
-            LogicalResult matchAndRewrite(RotaryOp op, OpAdaptor adaptor, ConversionPatternRewriter &rewriter) const override {
+            LogicalResult matchAndRewrite(RotaryOp op, OpAdaptor adaptor,
+                                          ConversionPatternRewriter &rewriter) const override {
                 const auto loc = op.getLoc();
 
                 // Apply rotary embedding
                 const Value result =
-                    applyRotary(rewriter, loc, op.getX(), op.getCos(), op.getSin(), op.getX().getType());
+                        applyRotary(rewriter, loc, op.getX(), op.getCos(), op.getSin(), op.getX().getType());
 
                 rewriter.replaceOp(op, result);
                 return success();

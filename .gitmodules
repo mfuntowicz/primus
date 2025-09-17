@@ -4,3 +4,6 @@
 [submodule "third-party/stablehlo"]
 	path = third-party/stablehlo
 	url = https://github.com/openxla/stablehlo
+[submodule "third-party/spdlog"]
+	path = third-party/spdlog
+	url = https://github.com/gabime/spdlog

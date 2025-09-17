@@ -37,12 +37,19 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/third-party/stablehlo")
 include_directories("${CMAKE_BINARY_DIR}/third-party/stablehlo")
 
 #-------------------------------------------------------------------------------
+# spdlog
+#-------------------------------------------------------------------------------
+add_subdirectory("third-party/spdlog")
+
+#-------------------------------------------------------------------------------
 # Python configuration
 #-------------------------------------------------------------------------------
 if (PRIMUS_ENABLE_BINDINGS_PYTHON)
     include(MLIRDetectPythonEnv)
     mlir_configure_python_dev_packages()
 endif ()
+
+add_subdirectory(unicron)
 
 #-------------------------------------------------------------------------------
 # Performance configuration

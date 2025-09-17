@@ -28,6 +28,10 @@ add_mlir_dialect_library(PrimusRegister
         LINK_LIBS PUBLIC
         PrimusOps
         MLIRFuncDialect
+        MLIRBufferizationDialect
+        MLIRIndexDialect
+        MLIRShapeDialect
+        StablehloOps
 )
 
 add_mlir_dialect_library(PrimusAssemblyFormat
