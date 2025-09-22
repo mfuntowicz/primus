@@ -34,25 +34,29 @@ namespace unicron {
     /**
      * Traits to detect specialization of Result<T>
      */
-    template<typename>
-    struct is_execution_engine_result : std::false_type {};
+    template <typename>
+    struct is_execution_engine_result : std::false_type
+    {
+    };
 
-    template<typename T>
-    struct is_execution_engine_result<mlir::ExecutionEngine::Result<T>> : std::true_type {};
+    template <typename T>
+    struct is_execution_engine_result<mlir::ExecutionEngine::Result<T>> : std::true_type
+    {
+    };
 
     /**
      * Evaluate the specialization of `Result<T>`
      * @tparam T Type of the underlying variable returned by the function
      */
-    template<typename T>
+    template <typename T>
     inline constexpr bool is_execution_engine_result_v = is_execution_engine_result<T>::value;
 
     /**
      * Concept to check if a type T is compatible with mlir::ExecutionEngine::Argument<T>::pack
      * and can be used as an argument to ExecutionEngine::invoke
      */
-    template<typename... T>
-    concept Packable = ((is_execution_engine_result_v<T> ||  std::convertible_to<T, void *>) && ...);
+    template <typename... T>
+    concept Packable = ((is_execution_engine_result_v<T> || std::convertible_to<T, void*>) && ...);
 
     struct compilation_artifact_t {
         /**
@@ -61,15 +65,18 @@ namespace unicron {
          * @param dylib
          */
         compilation_artifact_t(const std::string_view name, std::shared_ptr<mlir::ExecutionEngine> dylib)
-            : name(std::string(name)), dylib(std::move(dylib)) {
+            : name(std::string(name)), dylib(std::move(dylib))
+        {
         }
 
-        template<Packable... Args>
-        std::expected<void, std::string> invoke(std::string_view symbol, Args... args) {
+        template <Packable... Args>
+        std::expected<void, std::string> invoke(std::string_view symbol, Args... args)
+        {
             spdlog::trace("Invoking function `{}`", symbol);
 
             // Invoke the function
-            if (auto result = dylib->invoke(symbol, args...)) {
+            if (auto result = dylib->invoke(symbol, args...))
+            {
                 spdlog::error("JIT {} invocation failed", symbol);
                 return std::unexpected(llvm::toString(std::move(result)));
             }
