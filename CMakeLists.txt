@@ -30,8 +30,8 @@ include_directories(${MLIR_INCLUDE_DIRS})
 #-------------------------------------------------------------------------------
 # StableHLO
 #-------------------------------------------------------------------------------
-set(STABLEHLO_BUILD_EMBEDDED ON)
-set(STABLEHLO_ENABLE_BINDINGS_PYTHON ${PRIMUS_ENABLE_BINDINGS_PYTHON})
+#set(STABLEHLO_BUILD_EMBEDDED ON)
+#set(STABLEHLO_ENABLE_BINDINGS_PYTHON ${PRIMUS_ENABLE_BINDINGS_PYTHON})
 add_subdirectory("third-party/stablehlo")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/third-party/stablehlo")
 include_directories("${CMAKE_BINARY_DIR}/third-party/stablehlo")

@@ -31,7 +31,7 @@ add_mlir_dialect_library(PrimusRegister
         MLIRBufferizationDialect
         MLIRIndexDialect
         MLIRShapeDialect
-        StablehloOps
+        #        StablehloOps
 )
 
 add_mlir_dialect_library(PrimusAssemblyFormat
@@ -61,8 +61,8 @@ add_mlir_dialect_library(PrimusOps
         LINK_LIBS PUBLIC
         PrimusAssemblyFormat
         PrimusBase
-        StablehloAssemblyFormat
-        StablehloOps
+        #        StablehloAssemblyFormat
+        #        StablehloOps
         MLIRInferTypeOpInterface
         MLIRIR
         MLIRQuantDialect
