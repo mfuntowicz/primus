@@ -32,7 +32,6 @@
 #include "artifact.hpp"
 
 namespace unicron {
-
     void initialize_llvm() {
         std::call_once(initialized, []() {
             spdlog::trace("Initializing LLVM");
@@ -41,13 +40,16 @@ namespace unicron {
         });
     }
 
-    runtime_t::runtime_t() : host_native_triple(llvm::sys::getProcessTriple()) {}
+    runtime_t::runtime_t() : host_native_triple(llvm::sys::getProcessTriple())
+    {
+    }
 
     std::expected<target_info_t, error_t> create_target_machine(std::string_view sTriple) {
         const auto triple = llvm::Triple(sTriple.data());
 
         std::string onError;
-        if (const auto* target = llvm::TargetRegistry::lookupTarget(triple, onError); target) {
+        if (const auto* target = llvm::TargetRegistry::lookupTarget(triple, onError); target)
+        {
             const auto cpu = llvm::sys::getHostCPUName();
 
             auto options = llvm::TargetOptions();
@@ -108,12 +110,11 @@ namespace unicron {
             auto shared_engine = std::shared_ptr(std::move(*engine));
             auto artifact = std::make_shared<compilation_artifact_t>(name, shared_engine);
 
-            modules.insert({ name,  artifact});
+            modules.insert({name, artifact});
 
             return artifact;
         } else {
             return std::unexpected(target_info.error());
         }
     }
-
 } // unicron

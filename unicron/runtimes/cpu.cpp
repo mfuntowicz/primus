@@ -80,25 +80,26 @@ namespace unicron {
             .bufferizeFunctionBoundaries = true,
             .functionBoundaryTypeConversion = mlir::bufferization::LayoutMapOption::InferLayoutMap
         }));
+        // pm.addPass(mlir::bufferization::createOwnershipBasedBufferDeallocationPass());
 
-        // Step 6: Prepare memref operations for LLVM conversion
+        // Step 3: Prepare memref operations for LLVM conversion
         pm.addPass(mlir::memref::createExpandStridedMetadataPass());
         pm.addPass(mlir::memref::createExpandReallocPass());
         pm.addPass(mlir::memref::createFoldMemRefAliasOpsPass());
 
-        // Step 3: Lower high-level operations to loops
+        // Step 4: Lower high-level operations to loops
         pm.addNestedPass<mlir::func::FuncOp>(mlir::createConvertLinalgToAffineLoopsPass());
         pm.addNestedPass<mlir::func::FuncOp>(mlir::affine::createAffineLoopNormalizePass(true));
         pm.addNestedPass<mlir::func::FuncOp>(mlir::affine::createAffineLoopInvariantCodeMotionPass());
         pm.addNestedPass<mlir::func::FuncOp>(mlir::affine::createSimplifyAffineStructuresPass());
         pm.addNestedPass<mlir::func::FuncOp>(mlir::affine::createLoopFusionPass());
 
-        // Step 4: Convert affine to standard dialect
+        // Step 5: Convert affine to standard dialect
         pm.addPass(mlir::createLowerAffinePass());
         pm.addPass(mlir::createCanonicalizerPass());
         pm.addPass(mlir::createCSEPass());
 
-        // Step 5: Convert SCF to control flow
+        // Step 6: Convert SCF to control flow
         pm.addNestedPass<mlir::func::FuncOp>(mlir::createSCFToControlFlowPass());
 
         // Step 7: Convert to LLVM dialect - ORDER MATTERS!
@@ -119,6 +120,8 @@ namespace unicron {
             return nullptr;
         }
 
+        op->dumpPretty();
+
         // Register translation to LLVM IR
         mlir::registerBuiltinDialectTranslation(*context);
         mlir::registerLLVMDialectTranslation(*context);
@@ -130,9 +133,6 @@ namespace unicron {
             op->dumpPretty();
             return nullptr;
         }
-
-        llvmModule->dump();
-
         return llvmModule;
     }
 }

@@ -29,6 +29,7 @@ target_link_libraries(Unicron
         MLIRExecutionEngineUtils
         mlir_c_runner_utils
         PrimusOps
+        #        PrimusOpsTransforms
         PrimusRegister
         PrimusLinalgTransforms
         spdlog::spdlog
@@ -36,4 +37,4 @@ target_link_libraries(Unicron
 
 
 add_executable(UnicronRunner runner.cpp)
-target_link_libraries(UnicronRunner PRIVATE Unicron)
+target_link_libraries(UnicronRunner PRIVATE Unicron mlir_c_runner_utils)

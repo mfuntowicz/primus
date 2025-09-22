@@ -22,21 +22,23 @@
 #include "mlir/Dialect/Affine/Utils.h"
 #include "mlir/Dialect/Arith/IR/Arith.h"
 #include "mlir/Dialect/Linalg/IR/Linalg.h"
+#include "mlir/Dialect/Linalg/Transforms/Transforms.h"
 #include "mlir/Dialect/Tensor/IR/Tensor.h"
 #include "primus/dialects/PrimusOps.h"
 
 namespace mlir::primus {
-    namespace {
+    namespace
+    {
         // Function to split the last dimension of a tensor into two equal parts
         std::pair<Value, Value> splitLastDimensionInTwo(
             ConversionPatternRewriter &rewriter, const Location loc, Value src, const RankedTensorType srcTy) {
             const auto shape = srcTy.getShape();
 
-            // The last dimension (axis 3) is always static
+            // Assume all dimensions are static
             const int64_t lastDimSize = shape[3];
             const int64_t halfSize = lastDimSize / 2;
 
-            // Create offsets and sizes for extract_slice
+            // Create offsets and sizes for extract_slice - all static
             SmallVector<OpFoldResult> offsets, sizes, strides;
 
             for (int64_t i = 0; i < srcTy.getRank(); ++i) {
@@ -44,13 +46,8 @@ namespace mlir::primus {
                     // For dimension 3 (last dimension we're splitting)
                     sizes.push_back(rewriter.getIndexAttr(halfSize));
                 } else {
-                    // Other dimensions may be dynamic
-                    if (ShapedType::isDynamic(shape[i])) {
-                        const Value dimSize = rewriter.create<tensor::DimOp>(loc, src, i);
-                        sizes.push_back(dimSize);
-                    } else {
-                        sizes.push_back(rewriter.getIndexAttr(shape[i]));
-                    }
+                    // All other dimensions are static now
+                    sizes.push_back(rewriter.getIndexAttr(shape[i]));
                 }
                 offsets.push_back(rewriter.getIndexAttr(0)); // Start at 0 for the first half
                 strides.push_back(rewriter.getIndexAttr(1));
@@ -77,69 +74,48 @@ namespace mlir::primus {
 
         // Function to apply rotary embedding using linalg.generic
         Value applyRotary(
-            ConversionPatternRewriter &rewriter,
-            const Location loc,
-            Value x,
-            Value cos,
-            Value sin,
-            const RankedTensorType xTy) {
+            ConversionPatternRewriter& rewriter, const Location loc, const Value x, const Value cos, const Value sin,
+            const RankedTensorType xTy)
+        {
             // Chunk `x` in two equal parts
             auto [xHeadVal, xTailVal] = splitLastDimensionInTwo(rewriter, loc, x, xTy);
 
-            // Get dynamic dimensions for EmptyOp
+            // Get types - all static now
             auto halfType = cast<RankedTensorType>(xHeadVal.getType());
-            SmallVector<Value> halfDynamicSizes;
-            SmallVector<Value> fullDynamicSizes;
 
-            for (int64_t i = 0; i < halfType.getRank(); ++i) {
-                if (ShapedType::isDynamic(halfType.getShape()[i])) {
-                    Value dimSize = rewriter.create<tensor::DimOp>(loc, xHeadVal, i);
-                    halfDynamicSizes.push_back(dimSize);
-                }
-            }
-
-            for (int64_t i = 0; i < xTy.getRank(); ++i) {
-                if (ShapedType::isDynamic(xTy.getShape()[i])) {
-                    Value dimSize = rewriter.create<tensor::DimOp>(loc, x, i);
-                    fullDynamicSizes.push_back(dimSize);
-                }
-            }
-
-            // Create output tensors with proper dynamic sizes
+            // Create output tensors - no dynamic sizes needed since all dimensions are static
             Value outputHead = rewriter.create<tensor::EmptyOp>(
-                loc, halfType.getShape(), halfType.getElementType(), halfDynamicSizes);
+                loc, halfType.getShape(), halfType.getElementType());
             Value outputTail = rewriter.create<tensor::EmptyOp>(
-                loc, halfType.getShape(), halfType.getElementType(), halfDynamicSizes);
+                loc, halfType.getShape(), halfType.getElementType());
 
             const auto rank = halfType.getRank();
 
             // Create affine maps
-            // For input tensors (xHeadVal, xTailVal, outputHead, outputTail)
-            SmallVector<AffineExpr> inputExprs;
-            for (unsigned i = 0; i < rank; ++i) {
-                inputExprs.push_back(rewriter.getAffineDimExpr(i));
-            }
-            auto inputAffineMap = AffineMap::get(rank, 0, inputExprs, rewriter.getContext());
+            auto* context = rewriter.getContext();
 
-            // For cos/sin tensors (3D -> 4D broadcast)
-            SmallVector<AffineExpr> cosExprs;
-            cosExprs.push_back(rewriter.getAffineDimExpr(0)); // batch
-            cosExprs.push_back(rewriter.getAffineDimExpr(2)); // sequence
-            cosExprs.push_back(rewriter.getAffineDimExpr(3)); // head dimension
-            auto cosAffineMap = AffineMap::get(rank, 0, cosExprs, rewriter.getContext());
+            // Identity map for input/output tensors (all dimensions)
+            auto inputAffineMap = AffineMap::getMultiDimIdentityMap(rank, context);
+
+            // Broadcast map for cos/sin tensors (3D -> 4D: [batch, seq, head_dim])
+            auto cosAffineMap = AffineMap::get(rank, 0, {
+                                                   rewriter.getAffineDimExpr(0), // batch
+                                                   rewriter.getAffineDimExpr(2), // sequence
+                                                   rewriter.getAffineDimExpr(3) // head dimension
+                                               }, context);
 
             SmallVector<AffineMap> indexingMaps = {
                 inputAffineMap, // xHeadVal
                 inputAffineMap, // xTailVal
-                cosAffineMap, // cos (shared affine_map)
-                cosAffineMap, // sin (shared affine_map)
+                cosAffineMap, // cos (3D -> 4D broadcast)
+                cosAffineMap,   // sin (3D -> 4D broadcast)
                 inputAffineMap, // outputHead
                 inputAffineMap // outputTail
             };
 
             SmallVector<utils::IteratorType> iteratorTypes(rank, utils::IteratorType::parallel);
 
-            // Create single linalg.generic operation that yields both rotated values
+            // Create a single linalg.generic operation that yields both rotated values
             auto genericOp = rewriter.create<linalg::GenericOp>(
                 loc,
                 TypeRange{halfType, halfType},
@@ -173,25 +149,22 @@ namespace mlir::primus {
             const auto shape = xTy.getShape();
             const int64_t halfSize = shape[3] / 2;
 
-            // Initialize for concatenation
-            for (int64_t i = 0; i < xTy.getRank(); ++i) {
-                if (i == 3) {
+            // Initialize for concatenation - all static
+            for (int64_t i = 0; i < xTy.getRank(); ++i)
+            {
+                if (i == 3)
+                {
                     concatSizes.push_back(rewriter.getIndexAttr(halfSize));
                 } else {
-                    if (ShapedType::isDynamic(shape[i])) {
-                        Value dimSize = rewriter.create<tensor::DimOp>(loc, x, i);
-                        concatSizes.push_back(dimSize);
-                    } else {
-                        concatSizes.push_back(rewriter.getIndexAttr(shape[i]));
-                    }
+                    concatSizes.push_back(rewriter.getIndexAttr(shape[i]));
                 }
                 concatOffsets.push_back(rewriter.getIndexAttr(0));
                 concatStrides.push_back(rewriter.getIndexAttr(1));
             }
 
-            // Create final output tensor with proper dynamic sizes
+            // Create the final output tensor
             Value finalOutput = rewriter.create<tensor::EmptyOp>(
-                loc, xTy.getShape(), xTy.getElementType(), fullDynamicSizes);
+                loc, xTy.getShape(), xTy.getElementType());
 
             // Insert first half (rotatedHead)
             Value result = rewriter.create<tensor::InsertSliceOp>(
@@ -209,16 +182,21 @@ namespace mlir::primus {
             return result;
         }
 
+        /**
+         * Define the lowering from `RotaryOp` aka `primus.rotary` to a combination of `linalg` operations
+         */
         struct RotaryOpConverter final : OpConversionPattern<RotaryOp> {
             using OpConversionPattern::OpConversionPattern;
 
             LogicalResult matchAndRewrite(RotaryOp op, OpAdaptor adaptor,
-                                          ConversionPatternRewriter &rewriter) const override {
+                                          ConversionPatternRewriter& rewriter) const override
+            {
                 const auto loc = op.getLoc();
 
                 // Apply rotary embedding
                 const Value result =
-                        applyRotary(rewriter, loc, op.getX(), op.getCos(), op.getSin(), op.getX().getType());
+                    applyRotary(rewriter, loc, op.getX(), op.getCos(), op.getSin(),
+                                cast<RankedTensorType>(op.getX().getType()));
 
                 rewriter.replaceOp(op, result);
                 return success();
@@ -228,6 +206,7 @@ namespace mlir::primus {
 
     namespace detail {
         void populatePrimusRotaryToLinalgConversionPatterns(MLIRContext *context, RewritePatternSet *patterns) {
+            // Add the basic rotary converter
             patterns->add<RotaryOpConverter>(context);
         }
     }

@@ -30,13 +30,15 @@
 #include "artifact.hpp"
 #include "errors.hpp"
 
-namespace unicron {
-
+namespace unicron
+{
     static std::once_flag initialized;
+
     void initialize_llvm();
 
 
-    struct target_info_t {
+    struct target_info_t
+    {
         const llvm::Target* target;
         std::unique_ptr<llvm::TargetMachine> machine;
     };
@@ -48,7 +50,8 @@ namespace unicron {
      */
     std::expected<target_info_t, error_t> create_target_machine(std::string_view triple);
 
-    struct runtime_t {
+    struct runtime_t
+    {
         virtual ~runtime_t() = default;
 
         /**
