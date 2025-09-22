@@ -7,8 +7,12 @@ set(CMAKE_CXX_STANDARD 23)
 set(PRIMUS_LLVM_BUILD_DIR CACHE STRING "Path to LLVM build")
 option(PRIMUS_ENABLE_BINDINGS_PYTHON "Enable building the python binding" OFF)
 option(PRIMUS_ENABLE_LLD "Use LLD as linker if available" OFF)
+option(PRIMUS_ENABLE_SANITIZER "Enable a sanitizer [OFF, address]" OFF)
 
 set(CMAKE_CXX_FLAGS "-fno-rtti")
+
+# Add the CMake modules specific to Primus
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
@@ -40,6 +44,13 @@ include_directories("${CMAKE_BINARY_DIR}/third-party/stablehlo")
 # spdlog
 #-------------------------------------------------------------------------------
 add_subdirectory("third-party/spdlog")
+
+#-------------------------------------------------------------------------------
+# Sanitizer configuration
+#-------------------------------------------------------------------------------
+
+include(SetupSanitizers)
+setup_sanitizers()
 
 #-------------------------------------------------------------------------------
 # Python configuration
