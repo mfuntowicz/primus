@@ -14,11 +14,28 @@
 // ==============================================================================*
 
 //
-// Created by momo- on 9/5/2025.
+// Created by mfuntowicz on 9/23/25.
 //
 
-#include "AssemblyFormat.h"
+#ifndef PRIMUS_OPTIMUSOPS_H
+#define PRIMUS_OPTIMUSOPS_H
 
+#define GET_ATTRDEF_CLASSES
+#include "primus/dialects/OptimusAttrs.h.inc"
 
-namespace mlir::primus {
+namespace mlir::optimus
+{
+    class OptimusDialect : public mlir::Dialect
+    {
+    public:
+        explicit OptimusDialect(MLIRContext* context);
+
+        static StringRef getDialectNamespace() { return "optimus"; }
+    };
 }
+
+#define GET_OP_CLASSES
+#include "primus/dialects/OptimusOps.h.inc"
+
+
+#endif //PRIMUS_OPTIMUSOPS_H

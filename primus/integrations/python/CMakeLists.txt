@@ -1,3 +1,5 @@
+include(AddMLIRPython)
+
 declare_mlir_python_sources(PrimusPythonSources)
 declare_mlir_python_sources(PrimusPythonSources.Dialects
         ADD_TO_PARENT PrimusPythonSources
@@ -15,14 +17,35 @@ declare_mlir_dialect_python_bindings(
 ################################################################################
 
 ## The following options are used specifically for compiling nanobind codebase.
-add_compile_options(-Wno-error=cast-qual -Wno-error=nested-anon-types
-        -Wno-error=extra-semi -Wno-error=zero-length-array
-        -Wno-error=covered-switch-default)
+
+declare_mlir_python_sources(PrimusPythonExtensions)
+declare_mlir_python_extension(PrimusPythonExtensions.Main
+        MODULE_NAME _primus
+        ADD_TO_PARENT PrimusPythonExtensions
+        PYTHON_BINDINGS_LIBRARY nanobind
+        SOURCES
+        PrimusModule.cpp
+        EMBED_CAPI_LINK_LIBS
+        PrimusCAPI
+        PRIVATE_LINK_LIBS
+        PrimusCAPI
+        LLVMSupport
+)
 
 
 ###############################################################################
 # Generate packages and shared libraries
 ################################################################################
+declare_mlir_python_sources(PrimusWrapperPythonSources
+        ADD_TO_PARENT PrimusPythonSources
+        ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR}
+        SOURCES
+        primus/__init__.py
+        primus/module.py
+        primus/functional/__init__.py
+        primus/torch/__init__.py
+        primus/torch/types.py
+)
 
 add_mlir_python_common_capi_library(PrimusPythonCAPI
         INSTALL_COMPONENT PrimusPythonModules
@@ -31,8 +54,9 @@ add_mlir_python_common_capi_library(PrimusPythonCAPI
         RELATIVE_INSTALL_ROOT "../../../.."
         DECLARED_SOURCES
         MLIRPythonSources
-        #        MLIRPythonExtension.RegisterEverything
+        MLIRPythonExtension.RegisterEverything
         PrimusPythonSources
+        PrimusPythonExtensions
 )
 
 add_mlir_python_modules(PrimusPythonModules
@@ -40,10 +64,12 @@ add_mlir_python_modules(PrimusPythonModules
         INSTALL_PREFIX "python_packages/primus/mlir"
 
         DECLARED_SOURCES
-        #        MLIRPythonSources
-        #        MLIRPythonExtension.RegisterEverything
+        MLIRPythonSources
+        MLIRPythonExtension.RegisterEverything
         PrimusPythonSources
+        PrimusPythonExtensions
 
         COMMON_CAPI_LINK_LIBS
         PrimusPythonCAPI
+        Unicron
 )

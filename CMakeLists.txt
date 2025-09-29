@@ -31,18 +31,24 @@ find_package(MLIR REQUIRED CONFIG)
 
 include_directories(${MLIR_INCLUDE_DIRS})
 
+# Include LLVM CMake modules
+include(AddLLVM)
+include(AddMLIR)
+include(HandleLLVMOptions)
+
 #-------------------------------------------------------------------------------
 # StableHLO
 #-------------------------------------------------------------------------------
 #set(STABLEHLO_BUILD_EMBEDDED ON)
 #set(STABLEHLO_ENABLE_BINDINGS_PYTHON ${PRIMUS_ENABLE_BINDINGS_PYTHON})
-add_subdirectory("third-party/stablehlo")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/third-party/stablehlo")
-include_directories("${CMAKE_BINARY_DIR}/third-party/stablehlo")
+#add_subdirectory("third-party/stablehlo")
+#include_directories("${CMAKE_CURRENT_SOURCE_DIR}/third-party/stablehlo")
+#include_directories("${CMAKE_BINARY_DIR}/third-party/stablehlo")
 
 #-------------------------------------------------------------------------------
 # spdlog
 #-------------------------------------------------------------------------------
+set(SPDLOG_NO_EXCEPTIONS ON)
 add_subdirectory("third-party/spdlog")
 
 #-------------------------------------------------------------------------------
@@ -65,7 +71,6 @@ add_subdirectory(unicron)
 #-------------------------------------------------------------------------------
 # Performance configuration
 #-------------------------------------------------------------------------------
-include(HandleLLVMOptions)
 include(CheckCXXCompilerFlag)
 include(CheckLinkerFlag)
 if (PRIMUS_ENABLE_LLD)

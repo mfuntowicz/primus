@@ -13,27 +13,13 @@
 // limitations under the License.
 // ==============================================================================*
 
-//
-// Created by momo- on 9/5/2025.
-//
+include "mlir/IR/OpBase.td"
 
-#ifndef PRIMUS_CONVERSIONS_STABLEHLO_TRANSFORMS_PASSES_H
-#define PRIMUS_CONVERSIONS_STABLEHLO_TRANSFORMS_PASSES_H
+def Optimus_Dialect : Dialect {
+  let name = "optimus";
+  let cppNamespace = "::mlir::optimus";
 
-#include <memory>
-#include "mlir/Pass/Pass.h"
-
-namespace mlir {
-    class ModuleOp;
-
-    namespace primus {
-
-#define GEN_PASS_DECL
-#define GEN_PASS_REGISTRATION
-#include "primus/conversions/stablehlo/transforms/Passes.h.inc"
-
-    }  // namespace primus
-}  // namespace mlir
-
-
-#endif //PRIMUS_CONVERSIONS_STABLEHLO_TRANSFORMS_PASSES_H
+  let description = [{
+    Optimus dialect provided additional attributs for target features detection and tensor-layout
+  }];
+}

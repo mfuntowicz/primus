@@ -23,7 +23,6 @@
 #include <llvm/Support/Format.h>
 #include <mlir/IR/OpDefinition.h>
 #include <mlir/Dialect/Vector/IR/VectorOps.h>
-#include "primus/dialects/AssemblyFormat.h"
 
 #define GET_ATTRDEF_CLASSES
 #include "primus/dialects/PrimusAttrs.cpp.inc"

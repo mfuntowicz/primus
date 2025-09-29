@@ -18,7 +18,14 @@
 
 include "mlir/IR/OpBase.td"
 
-
+def Optimus_TargetDescriptor : AttrDef<Primus_Dialect, "TargetDescriptor"> {
+    let mnemonic = "target_descriptor";
+    let summary = "Attribute that describes target information";
+      let parameters = (ins
+          StringRefParameter<"Target name">:$name
+      );
+      let assemblyFormat = "`<` `name` `=` $name `>`";
+}
 
 
 #endif //PRIMUS_DIALECT_OPTIMUS_ATTRS

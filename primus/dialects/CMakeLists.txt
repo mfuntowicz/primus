@@ -34,15 +34,6 @@ add_mlir_dialect_library(PrimusRegister
         #        StablehloOps
 )
 
-add_mlir_dialect_library(PrimusAssemblyFormat
-        PARTIAL_SOURCES_INTENDED
-        AssemblyFormat.cpp
-
-        LINK_LIBS PUBLIC
-        PrimusBase
-        MLIRIR
-)
-
 set(LLVM_TARGET_DEFINITIONS PrimusOps.td)
 mlir_tablegen(PrimusOps.h.inc -gen-op-decls)
 mlir_tablegen(PrimusOps.cpp.inc -gen-op-defs)
@@ -59,7 +50,6 @@ add_mlir_dialect_library(PrimusOps
         PrimusOpsIncGen
 
         LINK_LIBS PUBLIC
-        PrimusAssemblyFormat
         PrimusBase
         #        StablehloAssemblyFormat
         #        StablehloOps
@@ -72,6 +62,33 @@ add_mlir_dialect_library(PrimusOps
 )
 
 target_include_directories(PrimusOps INTERFACE
+        $<BUILD_INTERFACE:${PRIMUS_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${PRIMUS_BINARY_DIR}>
+)
+
+
+set(LLVM_TARGET_DEFINITIONS OptimusOps.td)
+mlir_tablegen(OptimusOps.h.inc -gen-op-decls)
+mlir_tablegen(OptimusOps.cpp.inc -gen-op-defs)
+mlir_tablegen(OptimusAttrs.h.inc -gen-attrdef-decls)
+mlir_tablegen(OptimusAttrs.cpp.inc -gen-attrdef-defs)
+add_public_tablegen_target(OptimusOpsIncGen)
+add_dependencies(mlir-headers OptimusOpsIncGen)
+
+
+add_mlir_dialect_library(OptimusOps
+        PARTIAL_SOURCES_INTENDED
+        OptimusOps.cpp
+
+        DEPENDS
+        OptimusOpsIncGen
+
+        LINK_LIBS PUBLIC
+        MLIRIR
+        MLIRSupport
+)
+
+target_include_directories(OptimusOps INTERFACE
         $<BUILD_INTERFACE:${PRIMUS_SOURCE_DIR}>
         $<BUILD_INTERFACE:${PRIMUS_BINARY_DIR}>
 )

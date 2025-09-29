@@ -31,9 +31,12 @@
 
 #include "artifact.hpp"
 
-namespace unicron {
-    void initialize_llvm() {
-        std::call_once(initialized, []() {
+namespace unicron
+{
+    void initialize_llvm()
+    {
+        std::call_once(initialized, []()
+        {
             spdlog::trace("Initializing LLVM");
             llvm::InitializeNativeTarget();
             llvm::InitializeNativeTargetAsmPrinter();
@@ -44,7 +47,8 @@ namespace unicron {
     {
     }
 
-    std::expected<target_info_t, error_t> create_target_machine(std::string_view sTriple) {
+    std::expected<target_info_t, error_t> create_target_machine(std::string_view sTriple)
+    {
         const auto triple = llvm::Triple(sTriple.data());
 
         std::string onError;
@@ -54,7 +58,6 @@ namespace unicron {
 
             auto options = llvm::TargetOptions();
             options.AllowFPOpFusion = llvm::FPOpFusion::Fast;
-            options.ApproxFuncFPMath = true;
             options.UnsafeFPMath = true;
 
             auto* machine = target->createTargetMachine(
@@ -63,7 +66,7 @@ namespace unicron {
                 "",
                 options,
                 llvm::Reloc::PIC_,
-                llvm::CodeModel::Medium,
+                llvm::CodeModel::Small,
                 llvm::CodeGenOptLevel::Aggressive,
                 true
             );
@@ -76,7 +79,8 @@ namespace unicron {
     }
 
     std::expected<std::shared_ptr<compilation_artifact_t>, error_t>
-    runtime_t::register_module(mlir::Operation* const op, const bool with_debug) {
+    runtime_t::register_module(mlir::Operation * const op, const bool with_debug)
+    {
         const auto name = op->getName().getStringRef();
 
         if (modules.contains(name))
@@ -86,7 +90,8 @@ namespace unicron {
 
         // Create the execution engine from the module definition
         const auto target_info = create_target_machine(host_native_triple);
-        if (target_info) {
+        if (target_info)
+        {
             spdlog::trace("Creating execution engine targeting architecture `{}`", host_native_triple);
             auto lowering_f = [&](mlir::Operation* op_, llvm::LLVMContext& ctx) { return lower_to_llvm(op_, ctx); };
             auto optimizer_f = mlir::makeOptimizingTransformer(3, 0, target_info->machine.get());
@@ -102,7 +107,8 @@ namespace unicron {
             );
 
             auto engine = mlir::ExecutionEngine::create(op, options);
-            if (!engine) {
+            if (!engine)
+            {
                 auto error = engine.takeError();
                 return std::unexpected(error_t::module_compilation_failed(llvm::toString(std::move(error))));
             }
@@ -113,7 +119,9 @@ namespace unicron {
             modules.insert({name, artifact});
 
             return artifact;
-        } else {
+        }
+        else
+        {
             return std::unexpected(target_info.error());
         }
     }
