@@ -8,6 +8,7 @@ set(PRIMUS_LLVM_BUILD_DIR CACHE STRING "Path to LLVM build")
 option(PRIMUS_ENABLE_BINDINGS_PYTHON "Enable building the python binding" OFF)
 option(PRIMUS_ENABLE_LLD "Use LLD as linker if available" OFF)
 option(PRIMUS_ENABLE_SANITIZER "Enable a sanitizer [OFF, address]" OFF)
+option(PRIMUS_BUILD_TESTS "Enable building the tests suite" OFF)
 
 set(CMAKE_CXX_FLAGS "-fno-rtti")
 
@@ -76,6 +77,21 @@ include(CheckLinkerFlag)
 if (PRIMUS_ENABLE_LLD)
     message(STATUS "Enabling LLD as the linker")
     add_link_options("-fuse-ld=lld")
+endif ()
+
+#-------------------------------------------------------------------------------
+# Unit tests configuration
+#-------------------------------------------------------------------------------
+if (PRIMUS_BUILD_TESTS)
+    include(FetchContent)
+    FetchContent_Declare(
+            Catch2
+            GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+            GIT_TAG v3.10.0
+    )
+
+    FetchContent_MakeAvailable(Catch2)
+    add_subdirectory(tests)
 endif ()
 
 #-------------------------------------------------------------------------------
