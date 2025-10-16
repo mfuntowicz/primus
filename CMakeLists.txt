@@ -3,4 +3,13 @@ project(primus)
 
 set(CMAKE_CXX_STANDARD 23)
 
-add_subdirectory(htl)
+# Look around for LLVM dependencies
+find_package(LLVM REQUIRED CONFIG)
+
+# Include LLVM CMake modules
+include(AddLLVM)
+include(HandleLLVMOptions)
+
+add_subdirectory(examples)
+add_subdirectory(tlang)
+
