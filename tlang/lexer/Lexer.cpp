@@ -32,26 +32,27 @@ namespace tlang
         return ec == std::errc{} && ptr == sv.cend();
     }
 
-    std::pair<const char*, const char*> Lexer::consume(const char*& offset) const
+    std::pair<const char*, const char*> Lexer::Consume()
     {
         // Safety check - ensure offset is within bounds
-        if (offset >= source.cend())
+        if (current >= end)
         {
-            return {offset, offset};
+            return {current, current};
         }
 
-        const char* start = offset;
+        const char* start = current;
 
         // Read alphanumeric characters while staying within bounds
-        while (offset < source.cend() && std::isalnum(static_cast<unsigned char>(*offset)))
+        while (current < end && std::isalnum(static_cast<unsigned char>(*current)))
         {
-            ++offset;
+            ++current;
         }
 
-        return {start, offset};
+        return {start, current};
     }
 
-    Lexer::Lexer(const std::string_view source, const std::optional<std::string>& file) : source(source)
+    Lexer::Lexer(const std::string_view source, const std::optional<std::string>& file)
+        : source(source), line(0), current(source.cbegin()), end(source.cend())
     {
     }
 
@@ -60,76 +61,65 @@ namespace tlang
     {
     }
 
-    llvm::LogicalResult Lexer::Lex() const
+    Token Lexer::Lex()
     {
-        auto line = 0;
+        if (current >= end) return Token::End(line);
 
-        auto token = Token::Begin(0);
-        auto current = source.data();
+        // New line, increment current line number
+        // TODO: Increment and continue processing
 
-        do
+        auto token = Token::Begin();
+        switch (*current)
         {
-            llvm::outs() << llvm::formatv("{0}\n", token);
-            switch (*current)
-            {
-            // Skip comments
-            case '#':
-                do { ++current; }
-                while (*current != '\n');
-                break;
+        // Skip comments
+        case '#':
+            do { ++current; }
+            while (*current != '\n');
+            break;
 
-            // New line, increment current line number
-            case '\n':
-                ++line;
-                break;
+        case ':':
+            token = Token::Semicolon(line);
+            break;
 
-            case ':':
-                token = Token::Semicolon(line);
-                break;
+        case '=':
+            token = Token::Assign(line);
+            break;
 
-            case '=':
-                token = Token::Assign(line);
-                break;
+        case '+':
+            token = Token::Add(line);
+            break;
 
-            case '+':
-                token = Token::Add(line);
-                break;
+        case '-':
+            token = Token::Minus(line);
+            break;
 
-            case '-':
-                token = Token::Minus(line);
-                break;
+        case '*':
+            token = Token::Multiply(line);
+            break;
 
-            case '*':
-                token = Token::Multiply(line);
-                break;
+        case '/':
+            token = Token::Divide(line);
+            break;
 
-            case '/':
-                token = Token::Divide(line);
-                break;
+        default:
+            // Skip spaces
+            while (std::isspace(*current) && current != source.end()) ++current;
 
-            default:
-                // Skip spaces
-                while (std::isspace(*current) && current != source.end()) ++current;
-
-                auto [start, end] = consume(current);
-                const auto buffer = std::string_view(start, end);
-                if (is_integer(buffer))
-                    token = Token::Integer(line, buffer);
-                else if (is_float(buffer))
-                    token = Token::Float(line, buffer);
-                else if (buffer == "model")
-                    token = Token::Model(line);
-                else if (buffer == "def")
-                    token = Token::Def(line);
-                else
-                    token = Token::Literal(line, buffer);
-
-                current = end;
-            }
-            ++current;
+            const auto [from, to] = Consume();
+            const auto buffer = std::string_view(from, to);
+            if (is_integer(buffer))
+                token = Token::Integer(line, buffer);
+            else if (is_float(buffer))
+                token = Token::Float(line, buffer);
+            else if (buffer == "model")
+                token = Token::Model(line);
+            else if (buffer == "def")
+                token = Token::Def(line);
+            else
+                token = Token::Literal(line, buffer);
         }
-        while (current < source.end());
 
-        return llvm::success();
+        ++current;
+        return token;
     }
 } // htl

@@ -7,9 +7,8 @@
 
 #include <optional>
 #include <string_view>
-
 #include <llvm/Support/MemoryBufferRef.h>
-#include <llvm/Support/LogicalResult.h>
+#include "Token.hpp"
 
 namespace tlang
 {
@@ -17,6 +16,15 @@ namespace tlang
     {
         std::string file;
         std::string_view source;
+        size_t line;
+        const char* current;
+        const char* end;
+
+        /**
+         *
+         * @return
+         */
+        std::pair<const char*, const char*> Consume();
 
     public:
         /**
@@ -37,9 +45,12 @@ namespace tlang
 
         Lexer(const Lexer&) = delete;
         Lexer& operator=(const Lexer&) = delete;
-
-        std::pair<const char*, const char*> consume(const char*& offset) const;
-        llvm::LogicalResult Lex() const;
+        /**
+        *
+        * @return
+        */
+        [[nodiscard]]
+        Token Lex();
     };
 } // htl
 

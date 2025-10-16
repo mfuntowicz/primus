@@ -7,7 +7,7 @@
 #include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Support/raw_ostream.h>
 
-#include "../tlang/lexer/Lexer.hpp"
+#include "../tlang/lexer/Parser.hpp"
 
 using namespace llvm;
 
@@ -21,14 +21,13 @@ int main(const int argc, char** argv)
 
     if (!MBOrErr)
     {
-        errs() << "error: failed to read '" << file << "': "
-            << MBOrErr.getError().message() << "\n";
+        errs() << "error: failed to read '" << file << "': " << MBOrErr.getError().message() << "\n";
         return 1;
     }
 
     // Hold onto the owning buffer while the ref is used
     const std::unique_ptr<MemoryBuffer> buffer = std::move(*MBOrErr);
-    auto lexer = tlang::Lexer(buffer->getMemBufferRef(), file);
-    const auto result = lexer.Lex();
+    auto parser = tlang::Parser(buffer->getMemBufferRef(), file);
+    parser.Parse();
     return 0;
 }
