@@ -7,8 +7,14 @@ add_library(TLangLexer SHARED ${TLANG_LEXER_HEADERS} ${TLANG_LEXER_SOURCES})
 target_link_libraries(TLangLexer ${LLVM_DEPS})
 target_compile_options(TLangLexer PUBLIC -fno-rtti)
 
-set(TLANG_PARSER_HEADERS Parser.hpp)
-set(TLANG_PARSER_SOURCES Parser.cpp)
+set(TLANG_PARSER_HEADERS
+        Parser.hpp
+        Expression.hpp
+)
+set(TLANG_PARSER_SOURCES
+        Parser.cpp
+        Expression.cpp
+)
 add_library(TLangParser SHARED ${TLANG_PARSER_HEADERS} ${TLANG_PARSER_SOURCES})
 target_link_libraries(TLangParser ${LLVM_DEPS} TLangLexer)
 target_compile_options(TLangParser PUBLIC -fno-rtti)

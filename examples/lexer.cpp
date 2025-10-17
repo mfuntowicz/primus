@@ -7,7 +7,7 @@
 #include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Support/raw_ostream.h>
 
-#include "../tlang/lexer/Parser.hpp"
+#include "../tlang/frontend/Parser.hpp"
 
 using namespace llvm;
 

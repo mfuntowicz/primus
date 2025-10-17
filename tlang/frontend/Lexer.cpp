@@ -13,7 +13,7 @@
 
 namespace tlang
 {
-    inline bool is_integer(const std::string_view sv)
+    inline bool IsInteger(const std::string_view sv)
     {
         if (sv.empty()) return false;
 
@@ -23,13 +23,18 @@ namespace tlang
         return ec == std::errc{} && ptr == sv.cend();
     }
 
-    inline bool is_float(const std::string_view sv)
+    inline bool IsFloat(const std::string_view sv)
     {
         if (sv.empty()) return false;
 
         double value;
         auto [ptr, ec] = std::from_chars(sv.cbegin(), sv.cend(), value, std::chars_format::general);
         return ec == std::errc{} && ptr == sv.cend();
+    }
+
+    inline bool IsAcceptedLiteralChar(const uint8_t c)
+    {
+        return c == '_' || std::isalnum(c);
     }
 
     std::pair<const char*, const char*> Lexer::Consume()
@@ -40,15 +45,16 @@ namespace tlang
             return {current, current};
         }
 
-        const char* start = current;
-
         // Read alphanumeric characters while staying within bounds
-        while (current < end && std::isalnum(static_cast<unsigned char>(*current)))
+        const char* from = current;
+        const char* to = current;
+        while (to < end && IsAcceptedLiteralChar(static_cast<unsigned char>(*to)))
         {
-            ++current;
+            ++to;
         }
 
-        return {start, current};
+        current = to - 1;
+        return {from, to};
     }
 
     Lexer::Lexer(const std::string_view source, const std::optional<std::string>& file)
@@ -63,12 +69,13 @@ namespace tlang
 
     Token Lexer::Lex()
     {
+        // Skip any leading space(s)
+        while (isspace(*current) && current < end) ++current;
+
+        // Check we are not at the end
         if (current >= end) return Token::End(line);
 
-        // New line, increment current line number
-        // TODO: Increment and continue processing
-
-        auto token = Token::Begin();
+        auto token = Token::Begin(line);
         switch (*current)
         {
         // Skip comments
@@ -77,8 +84,32 @@ namespace tlang
             while (*current != '\n');
             break;
 
+        case '>':
+            token = Token::ArrowRight(line);
+            break;
+
+        case ',':
+            token = Token::Comma(line);
+            break;
+
         case ':':
             token = Token::Semicolon(line);
+            break;
+
+        case '(':
+            token = Token::ParenthesisOpen(line);
+            break;
+
+        case ')':
+            token = Token::ParenthesisClose(line);
+            break;
+
+        case '[':
+            token = Token::SquareOpen(line);
+            break;
+
+        case ']':
+            token = Token::SquareClose(line);
             break;
 
         case '=':
@@ -103,13 +134,13 @@ namespace tlang
 
         default:
             // Skip spaces
-            while (std::isspace(*current) && current != source.end()) ++current;
+            while (std::isspace(*current) && current < source.end()) ++current;
 
             const auto [from, to] = Consume();
             const auto buffer = std::string_view(from, to);
-            if (is_integer(buffer))
+            if (IsInteger(buffer))
                 token = Token::Integer(line, buffer);
-            else if (is_float(buffer))
+            else if (IsFloat(buffer))
                 token = Token::Float(line, buffer);
             else if (buffer == "model")
                 token = Token::Model(line);
