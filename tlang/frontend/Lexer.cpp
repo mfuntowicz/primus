@@ -110,7 +110,7 @@ namespace tlang
             break;
 
         case ':':
-            token = Token::Semicolon(line);
+            token = Token::Colon(line);
             break;
 
         case '(':

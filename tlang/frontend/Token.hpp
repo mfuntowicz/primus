@@ -26,7 +26,7 @@ namespace tlang
         kDivide,
         kArrowRight,
         kComma,
-        kSemiColon,
+        kColon,
         kParenthesisOpen,
         kParenthesisClose,
         kSquareOpen,
@@ -65,7 +65,7 @@ namespace tlang
         EMPTY_TOKEN(Divide, kDivide)
         EMPTY_TOKEN(ArrowRight, kArrowRight)
         EMPTY_TOKEN(Comma, kComma)
-        EMPTY_TOKEN(Semicolon, kSemiColon)
+        EMPTY_TOKEN(Colon, kColon)
         EMPTY_TOKEN(ParenthesisOpen, kParenthesisOpen)
         EMPTY_TOKEN(ParenthesisClose, kParenthesisClose)
         EMPTY_TOKEN(SquareOpen, kSquareOpen)
@@ -116,7 +116,7 @@ namespace llvm
                 break;
             case kComma: OS << "Comma";
                 break;
-            case kSemiColon: OS << "SemiColon";
+            case kColon: OS << "Colon";
                 break;
             case kParenthesisOpen: OS << "ParenthesisOpen";
                 break;
