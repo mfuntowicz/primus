@@ -21,6 +21,11 @@ namespace tlang
         const char* end;
 
         /**
+         * Check if the current character is a newline, if so, skip and increase the current position
+         */
+        void MoveOnIfNewLine();
+
+        /**
          *
          * @return
          */
@@ -45,6 +50,7 @@ namespace tlang
 
         Lexer(const Lexer&) = delete;
         Lexer& operator=(const Lexer&) = delete;
+
         /**
         *
         * @return

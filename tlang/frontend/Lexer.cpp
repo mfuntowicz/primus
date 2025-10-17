@@ -37,6 +37,15 @@ namespace tlang
         return c == '_' || std::isalnum(c);
     }
 
+    void Lexer::MoveOnIfNewLine()
+    {
+        if (*current == '\n' || *current == '\r')
+        {
+            ++line;
+            ++current;
+        }
+    }
+
     std::pair<const char*, const char*> Lexer::Consume()
     {
         // Safety check - ensure offset is within bounds
@@ -69,6 +78,8 @@ namespace tlang
 
     Token Lexer::Lex()
     {
+        MoveOnIfNewLine();
+
         // Skip any leading space(s)
         while (isspace(*current) && current < end) ++current;
 
@@ -78,6 +89,12 @@ namespace tlang
         auto token = Token::Begin(line);
         switch (*current)
         {
+        // case '\n':
+        // case '\r':
+        //     ++line;
+        //     ++current;
+        //     [[fallthrough]];
+
         // Skip comments
         case '#':
             do { ++current; }
