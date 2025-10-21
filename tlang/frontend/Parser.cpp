@@ -55,6 +55,19 @@ namespace tlang
         return std::nullopt;
     }
 
+    std::optional<Token> MatchTokenOrDiagnostic(
+        const Token& token,
+        const llvm::SmallVector<TokenKind>& kinds,
+        Diagnostics& diagnostics,
+        const std::string_view context
+    )
+    {
+        for (const auto& expected : kinds)
+            if (IsTokenA(token, expected)) return token;
+
+        diagnostics.push_back(Diagnostic::UnexpectedToken(kinds, token, context));
+        return std::nullopt;
+    }
 
     void TranslationUnit::AddDecl(VariableDecl&& vardecl)
     {
@@ -156,7 +169,8 @@ namespace tlang
     {
         EXTRACT(type, MatchTokenOrDiagnostic(lexer.Lex(), kLiteral, diagnostics, VARIABLE_DECLARATION_CONTEXT));
         CONSUME(MatchTokenOrDiagnostic(lexer.Lex(), kAssign, diagnostics, VARIABLE_DECLARATION_CONTEXT));
-        EXTRACT(value, MatchTokenOrDiagnostic(lexer.Lex(), kInteger, diagnostics, VARIABLE_DECLARATION_CONTEXT));
+        EXTRACT(value,
+                MatchTokenOrDiagnostic(lexer.Lex(), {kInteger, kFloat}, diagnostics, VARIABLE_DECLARATION_CONTEXT));
 
         if (const auto dtype = ParseType(type.value(), diagnostics); dtype.has_value())
         {

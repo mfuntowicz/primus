@@ -34,7 +34,7 @@ namespace tlang
 
     inline bool IsAcceptedLiteralChar(const uint8_t c)
     {
-        return c == '_' || std::isalnum(c);
+        return c == '_' || c == '.' || std::isalnum(c);
     }
 
     void Lexer::MoveOnIfNewLine()
