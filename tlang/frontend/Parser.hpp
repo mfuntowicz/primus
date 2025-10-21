@@ -87,7 +87,16 @@ namespace tlang
          * @return
          */
         std::expected<VariableDecl, errors::Diagnostics>
-        ParserVariableDecl(Token name, errors::Diagnostics& diagnostics);
+        ParseVariableDecl(Token name, errors::Diagnostics& diagnostics);
+
+        /**
+         *
+         * @param name
+         * @param diagnostics
+         * @return
+         */
+        std::expected<VariableDecl, errors::Diagnostics>
+        ParseVariableDeclInferType(Token name, errors::Diagnostics& diagnostics);
 
     public:
         Parser(std::string_view source, const std::optional<std::string>& file);

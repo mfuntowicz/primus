@@ -94,7 +94,7 @@ namespace tlang
     // }
 
     std::expected<VariableDecl, errors::Diagnostics>
-    Parser::ParserVariableDecl(Token name, errors::Diagnostics& diagnostics)
+    Parser::ParseVariableDecl(Token name, errors::Diagnostics& diagnostics)
     {
         EXTRACT(type, MatchTokenOrDiagnostic(lexer.Lex(), kLiteral, diagnostics, VARIABLE_DECLARATION_CONTEXT));
         CONSUME(MatchTokenOrDiagnostic(lexer.Lex(), kAssign, diagnostics, VARIABLE_DECLARATION_CONTEXT));
@@ -103,6 +103,18 @@ namespace tlang
         return VariableDecl{
             std::string_view(name.value.value()),
             IntegerTy{32},
+            std::string_view(value.value().value.value())
+        };
+    }
+
+    std::expected<VariableDecl, errors::Diagnostics>
+    Parser::ParseVariableDeclInferType(Token name, errors::Diagnostics& diagnostics)
+    {
+        EXTRACT(value, MatchTokenOrDiagnostic(lexer.Lex(), kInteger, diagnostics, VARIABLE_DECLARATION_CONTEXT));
+
+        return VariableDecl{
+            std::string_view(name.value.value()),
+            InferTy{},
             std::string_view(value.value().value.value())
         };
     }
@@ -118,7 +130,11 @@ namespace tlang
             case kLiteral:
                 if (const auto next = lexer.Lex(); next.kind == kColon)
                 {
-                    return ParserVariableDecl(token, diagnostics);
+                    return ParseVariableDecl(token, diagnostics);
+                }
+                else if (next.kind == kAssign)
+                {
+                    return ParseVariableDeclInferType(token, diagnostics);
                 }
             }
 

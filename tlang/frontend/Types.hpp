@@ -7,13 +7,17 @@
 
 #include <variant>
 
-#include <llvm/ADT/APFloat.h>
-#include <llvm/ADT/APInt.h>
-#include <llvm/ADT/APSInt.h>
 #include <llvm/ADT/SmallVector.h>
 
 namespace tlang
 {
+    struct InferTy
+    {
+        bool operator==(const InferTy&) const = default;
+    };
+
+    static_assert(sizeof(InferTy) == 1);
+
     struct IntegerTy
     {
         uint8_t width;
@@ -24,10 +28,14 @@ namespace tlang
         }
     };
 
+    static_assert(sizeof(IntegerTy) == 1);
+
     struct SignedIntegerTy
     {
         uint8_t width;
     };
+
+    static_assert(sizeof(SignedIntegerTy) == 1);
 
     struct FloatTy
     {
@@ -35,6 +43,8 @@ namespace tlang
         uint8_t mantissa;
         uint8_t exponent;
     };
+
+    static_assert(sizeof(FloatTy) == 3);
 
     /**
      *
@@ -59,7 +69,8 @@ namespace tlang
     /**
      *
      */
-    using TensorOrScalarTy = std::variant<TensorTy, ScalarTy>;
+    using TensorOrScalarTy = std::variant<ScalarTy, TensorTy>;
+    using InferrableTensorOrScalarTy = std::variant<InferTy, ScalarTy, TensorTy>;
 }
 
 #endif //PRIMUS_TYPES_HPP

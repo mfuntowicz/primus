@@ -22,7 +22,7 @@ namespace tlang
     struct VariableDecl
     {
         std::string_view name;
-        TensorOrScalarTy type;
+        InferrableTensorOrScalarTy type;
         std::string_view initializer;
     };
 
