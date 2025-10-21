@@ -6,10 +6,12 @@
 #define PRIMUS_PARSER_HPP
 
 #include <expected>
+#include <list>
 #include <optional>
 #include <string_view>
 #include <llvm/ADT/SmallString.h>
 #include <llvm/Support/FormatVariadic.h>
+#include <llvm/Support/FormatProviders.h>
 
 #include "Expression.hpp"
 #include "Lexer.hpp"
@@ -55,12 +57,24 @@ namespace tlang
     }
 
 
-    class Context
+    /**
+     *
+     */
+    class TranslationUnit
     {
+        std::list<VariableDecl> decls;
+
+    public:
+        void AddDecl(VariableDecl&&);
+        void Visit() const;
+
+        const std::list<VariableDecl>& Declarations() const { return decls; }
     };
 
+    static_assert(CompositeDecl<TranslationUnit>);
 
     /**
+     * Parser is responsible for aggregating lexed tokens into more semantically meaningful representations.
      *
      */
     class Parser
@@ -106,8 +120,25 @@ namespace tlang
          *
          * @return
          */
-        std::expected<VariableDecl, llvm::SmallVector<errors::Diagnostic>> Parse();
+        std::expected<TranslationUnit, llvm::SmallVector<errors::Diagnostic>> Parse();
     };
 } // tlang
+
+namespace llvm
+{
+    template <>
+    struct format_provider<tlang::TranslationUnit>
+    {
+        static void format(const tlang::TranslationUnit& T, raw_ostream& OS, StringRef Style)
+        {
+            OS << "{\n";
+            for (const auto& decl : T.Declarations())
+            {
+                OS << formatv("\t{0}\n", decl);
+            }
+            OS << "}";
+        }
+    };
+}
 
 #endif //PRIMUS_PARSER_HPP

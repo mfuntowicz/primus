@@ -11,21 +11,25 @@
 
 namespace tlang
 {
+    /**
+     * Helper type to represent a variable which type is not defined during parsing and should
+     * be inferred at a later stage.
+     */
     struct InferTy
     {
-        bool operator==(const InferTy&) const = default;
+        constexpr bool operator==(const InferTy&) const { return true; };
     };
 
     static_assert(sizeof(InferTy) == 1);
 
+    /**
+     * Represent an unsigned, fixed-width, integer type,
+     */
     struct IntegerTy
     {
         uint8_t width;
 
-        bool operator==(const IntegerTy other) const
-        {
-            return other.width == width;
-        }
+        constexpr bool operator==(const IntegerTy& other) const = default;
     };
 
     static_assert(sizeof(IntegerTy) == 1);
@@ -33,6 +37,8 @@ namespace tlang
     struct SignedIntegerTy
     {
         uint8_t width;
+
+        constexpr bool operator==(const SignedIntegerTy& other) const = default;
     };
 
     static_assert(sizeof(SignedIntegerTy) == 1);
@@ -42,6 +48,8 @@ namespace tlang
         uint8_t width;
         uint8_t mantissa;
         uint8_t exponent;
+
+        constexpr bool operator==(const FloatTy& other) const = default;
     };
 
     static_assert(sizeof(FloatTy) == 3);

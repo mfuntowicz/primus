@@ -14,10 +14,13 @@
 #define CONSUME(x) \
     if (!(x)) return std::unexpected(diagnostics);
 
+
+using namespace tlang::errors;
+
 namespace tlang
 {
     template <typename... Args>
-    std::optional<Token> Expect(Token token, TokenKind kind, errors::Diagnostics& diagnostics, Args&&... args)
+    std::optional<Token> Expect(Token token, TokenKind kind, Diagnostics& diagnostics, Args&&... args)
     {
         auto result = MatchTokenOrDiagnostic(token, kind, diagnostics, std::forward<Args>(args)...);
         if (!result) return std::nullopt;
@@ -40,17 +43,28 @@ namespace tlang
     std::optional<Token> MatchTokenOrDiagnostic(
         const Token& token,
         const TokenKind expected,
-        errors::Diagnostics& diagnostics,
+        Diagnostics& diagnostics,
         const std::string_view context
     )
     {
         if (IsTokenA(token, expected)) return token;
 
-        diagnostics.push_back(errors::Diagnostic::UnexpectedToken(expected, token, context));
+        diagnostics.push_back(Diagnostic::UnexpectedToken(expected, token, context));
         return std::nullopt;
     }
 
-    // std::optional<FuncArgumentsDecl> Parser::ParseArgumentList(errors::Diagnostics& diagnostics)
+
+    void TranslationUnit::AddDecl(VariableDecl&& vardecl)
+    {
+        decls.push_back(std::move(vardecl));
+    }
+
+    void TranslationUnit::Visit() const
+    {
+    }
+
+
+    // std::optional<FuncArgumentsDecl> Parser::ParseArgumentList(Diagnostics& diagnostics)
     // {
     //     FuncArgumentsDecl args;
     //     auto token = lexer.Lex();
@@ -72,7 +86,7 @@ namespace tlang
     //         else if (!IsTokenA(token, kParenthesisClose))
     //         {
     //             diagnostics.push_back(
-    //                 errors::Diagnostic::UnexpectedToken(kParenthesisClose, token, FUNCTION_DECLARATION_CONTEXT)
+    //                 Diagnostic::UnexpectedToken(kParenthesisClose, token, FUNCTION_DECLARATION_CONTEXT)
     //             );
     //             return std::nullopt;
     //         }
@@ -81,7 +95,7 @@ namespace tlang
     //     return args;
     // }
     //
-    // std::expected<FunctionDecl, errors::Diagnostics> Parser::ParseFunctionDeclaration(errors::Diagnostics& diagnostics)
+    // std::expected<FunctionDecl, Diagnostics> Parser::ParseFunctionDeclaration(Diagnostics& diagnostics)
     // {
     //     BIND(name, MatchTokenOrDiagnostic(lexer.Lex(), kLiteral, diagnostics, FUNCTION_DECLARATION_CONTEXT))
     //     CONSUME(MatchTokenOrDiagnostic(lexer.Lex(), kParenthesisOpen, diagnostics, FUNCTION_DECLARATION_CONTEXT))
@@ -93,8 +107,8 @@ namespace tlang
     //     return FunctionDecl{*name.value().value, *args};
     // }
 
-    std::expected<VariableDecl, errors::Diagnostics>
-    Parser::ParseVariableDecl(Token name, errors::Diagnostics& diagnostics)
+    std::expected<VariableDecl, Diagnostics>
+    Parser::ParseVariableDecl(Token name, Diagnostics& diagnostics)
     {
         EXTRACT(type, MatchTokenOrDiagnostic(lexer.Lex(), kLiteral, diagnostics, VARIABLE_DECLARATION_CONTEXT));
         CONSUME(MatchTokenOrDiagnostic(lexer.Lex(), kAssign, diagnostics, VARIABLE_DECLARATION_CONTEXT));
@@ -107,8 +121,8 @@ namespace tlang
         };
     }
 
-    std::expected<VariableDecl, errors::Diagnostics>
-    Parser::ParseVariableDeclInferType(Token name, errors::Diagnostics& diagnostics)
+    std::expected<VariableDecl, Diagnostics>
+    Parser::ParseVariableDeclInferType(Token name, Diagnostics& diagnostics)
     {
         EXTRACT(value, MatchTokenOrDiagnostic(lexer.Lex(), kInteger, diagnostics, VARIABLE_DECLARATION_CONTEXT));
 
@@ -119,9 +133,10 @@ namespace tlang
         };
     }
 
-    std::expected<VariableDecl, errors::Diagnostics> Parser::Parse()
+    std::expected<TranslationUnit, Diagnostics> Parser::Parse()
     {
-        errors::Diagnostics diagnostics;
+        TranslationUnit unit;
+        Diagnostics diagnostics;
         for (auto token = Token::Begin(0); token.kind != kEndOfStream; token = lexer.Lex())
         {
             switch (token.kind)
@@ -130,15 +145,17 @@ namespace tlang
             case kLiteral:
                 if (const auto next = lexer.Lex(); next.kind == kColon)
                 {
-                    return ParseVariableDecl(token, diagnostics);
+                    if (auto decl = ParseVariableDecl(token, diagnostics); decl.has_value())
+                        unit.AddDecl(std::move(*decl));
                 }
                 else if (next.kind == kAssign)
                 {
-                    return ParseVariableDeclInferType(token, diagnostics);
+                    if (auto decl = ParseVariableDeclInferType(token, diagnostics); decl.has_value())
+                        unit.AddDecl(std::move(*decl));
                 }
             }
-
-            llvm_unreachable("");
         }
+
+        return unit;
     }
 } // tlang

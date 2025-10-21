@@ -4,6 +4,7 @@
 
 #include <llvm/Support/CommandLine.h>
 #include <llvm/Support/ErrorOr.h>
+#include <llvm/Support/FormatVariadic.h>
 #include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Support/raw_ostream.h>
 
@@ -37,7 +38,8 @@ int main(const int argc, char** argv)
     }
     else
     {
-        const auto decl = *result;
+        const auto unit = result.value();
+        llvm::outs() << formatv("{0}\n", unit);
         llvm::outs() << llvm::formatv("Successfully parsed tlang file {0}\n", file);
     }
     return 0;
