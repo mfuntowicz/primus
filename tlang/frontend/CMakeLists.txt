@@ -10,10 +10,12 @@ target_compile_options(TLangLexer PUBLIC -fno-rtti)
 set(TLANG_PARSER_HEADERS
         Parser.hpp
         Expression.hpp
+        Types.hpp
 )
 set(TLANG_PARSER_SOURCES
         Parser.cpp
         Expression.cpp
+        Types.cpp
 )
 add_library(TLangParser SHARED ${TLANG_PARSER_HEADERS} ${TLANG_PARSER_SOURCES})
 target_link_libraries(TLangParser ${LLVM_DEPS} TLangLexer)

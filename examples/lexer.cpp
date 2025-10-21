@@ -28,6 +28,17 @@ int main(const int argc, char** argv)
     // Hold onto the owning buffer while the ref is used
     const std::unique_ptr<MemoryBuffer> buffer = std::move(*MBOrErr);
     auto parser = tlang::Parser(buffer->getMemBufferRef(), file);
-    parser.Parse();
+    if (const auto result = parser.Parse(); !result.has_value())
+    {
+        for (const auto& diagnostic : result.error())
+        {
+            llvm::errs() << diagnostic.what << "\n";
+        }
+    }
+    else
+    {
+        const auto decl = *result;
+        llvm::outs() << llvm::formatv("Successfully parsed tlang file {0}\n", file);
+    }
     return 0;
 }
