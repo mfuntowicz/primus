@@ -4,7 +4,9 @@
 
 #include "Parser.hpp"
 
+#include <charconv>
 #include <optional>
+#include <bits/locale_facets_nonio.h>
 #include <llvm/Support/FormatVariadic.h>
 
 #define EXTRACT(varname, x) \
@@ -107,6 +109,48 @@ namespace tlang
     //     return FunctionDecl{*name.value().value, *args};
     // }
 
+    std::expected<InferrableTensorOrScalarTy, Diagnostics>
+    Parser::ParseType(const Token& ty, Diagnostics& diagnostics)
+    {
+        if (IsTokenA(ty, kLiteral))
+        {
+            const auto type = ty.value.value();
+            if (type.starts_with("uint"))
+            {
+                auto dtype = IntegerTy();
+                auto [_, ec] = std::from_chars(type.cbegin() + 4, type.cend(), dtype.width, 10);
+                if (ec != std::errc())
+                    diagnostics.push_back(Diagnostic::InvalidType(ty, TYPE_PARSING_CONTEXT));
+
+                return dtype;
+            }
+
+            if (type.starts_with("int"))
+            {
+                auto dtype = SignedIntegerTy();
+                auto [_, ec] = std::from_chars(type.cbegin() + 3, type.cend(), dtype.width, 10);
+                if (ec != std::errc())
+                    diagnostics.push_back(Diagnostic::InvalidType(ty, TYPE_PARSING_CONTEXT));
+
+                return dtype;
+            }
+
+            if (type.starts_with("float"))
+            {
+                auto dtype = FloatTy();
+                auto [_, ec] = std::from_chars(type.cbegin() + 5, type.cend(), dtype.width, 10);
+                if (ec != std::errc())
+                    diagnostics.push_back(Diagnostic::InvalidType(ty, TYPE_PARSING_CONTEXT));
+
+                return dtype;
+            }
+
+            return TensorTy{{1}, FloatTy{32, 24, 8}};
+        }
+
+        return std::unexpected(diagnostics);
+    }
+
     std::expected<VariableDecl, Diagnostics>
     Parser::ParseVariableDecl(Token name, Diagnostics& diagnostics)
     {
@@ -114,11 +158,16 @@ namespace tlang
         CONSUME(MatchTokenOrDiagnostic(lexer.Lex(), kAssign, diagnostics, VARIABLE_DECLARATION_CONTEXT));
         EXTRACT(value, MatchTokenOrDiagnostic(lexer.Lex(), kInteger, diagnostics, VARIABLE_DECLARATION_CONTEXT));
 
-        return VariableDecl{
-            std::string_view(name.value.value()),
-            IntegerTy{32},
-            std::string_view(value.value().value.value())
-        };
+        if (const auto dtype = ParseType(type.value(), diagnostics); dtype.has_value())
+        {
+            return VariableDecl{
+                std::string_view(name.value.value()),
+                dtype.value(),
+                std::string_view(value.value().value.value())
+            };
+        }
+
+        return std::unexpected(diagnostics);
     }
 
     std::expected<VariableDecl, Diagnostics>

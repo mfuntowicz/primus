@@ -21,6 +21,7 @@ namespace tlang
 {
     static std::string FUNCTION_DECLARATION_CONTEXT = "Error while parsing function declaration";
     static std::string VARIABLE_DECLARATION_CONTEXT = "Error while parsing variable declaration";
+    static std::string TYPE_PARSING_CONTEXT = "Error while parsing type declaration";
 
     namespace errors
     {
@@ -29,7 +30,8 @@ namespace tlang
          */
         enum DiagnosticKind
         {
-            kUnexpectedToken
+            kUnexpectedToken,
+            kInvalidType,
         };
 
         /**
@@ -41,14 +43,24 @@ namespace tlang
             DiagnosticKind kind;
             llvm::SmallString<32> what;
 
-            static Diagnostic UnexpectedToken(const TokenKind expected, const Token& actual,
-                                              const std::string_view context)
+            static Diagnostic
+            UnexpectedToken(const TokenKind expected, const Token& actual, const std::string_view context)
             {
                 return {
                     true,
                     kUnexpectedToken,
                     llvm::formatv("{0}: Expected {1} but got {2} (line: {3})", context, expected, actual.kind,
                                   actual.line)
+                };
+            }
+
+            static Diagnostic
+            InvalidType(const Token& token, const std::string_view context)
+            {
+                return {
+                    true,
+                    kInvalidType,
+                    llvm::formatv("{0}: Invalid type {1} (line: {2})", context, token.value, token.line)
                 };
             }
         };
@@ -94,6 +106,15 @@ namespace tlang
          * @return
          */
         // std::optional<FuncArgumentsDecl> ParseArgumentList(errors::Diagnostics& diagnostics);
+
+        /**
+         *
+         * @param ty
+         * @param diagnostics
+         * @return
+         */
+        static std::expected<InferrableTensorOrScalarTy, errors::Diagnostics>
+        ParseType(const Token& ty, errors::Diagnostics& diagnostics);
 
         /**
          * @param name

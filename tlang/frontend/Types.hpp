@@ -6,8 +6,9 @@
 #define PRIMUS_TYPES_HPP
 
 #include <variant>
-
 #include <llvm/ADT/SmallVector.h>
+#include "Token.hpp"
+
 
 namespace tlang
 {
@@ -17,7 +18,7 @@ namespace tlang
      */
     struct InferTy
     {
-        constexpr bool operator==(const InferTy&) const { return true; };
+        constexpr bool operator==(const InferTy&) const { return true; }
     };
 
     static_assert(sizeof(InferTy) == 1);

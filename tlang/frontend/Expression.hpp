@@ -90,7 +90,7 @@ namespace llvm
     {
         static void format(const tlang::IntegerTy& T, raw_ostream& OS, StringRef Style)
         {
-            OS << formatv("[Int{0}]", T.width);
+            OS << formatv("[UInt{0}]", T.width);
         }
     };
 
@@ -99,7 +99,7 @@ namespace llvm
     {
         static void format(const tlang::SignedIntegerTy& T, raw_ostream& OS, StringRef Style)
         {
-            OS << formatv("[SInt{0}]", T.width);
+            OS << formatv("[Int{0}]", T.width);
         }
     };
 
