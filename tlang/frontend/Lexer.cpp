@@ -78,10 +78,13 @@ namespace tlang
 
     Token Lexer::Lex()
     {
-        MoveOnIfNewLine();
-
-        // Skip any leading space(s)
-        while (isspace(*current) && current < end) ++current;
+        // Skip any leading space(s) and count newlines
+        while (current < end && isspace(*current))
+        {
+            if (*current == '\n' || *current == '\r')
+                ++line;
+            ++current;
+        }
 
         // Check we are not at the end
         if (current >= end) return Token::End(line);
@@ -150,9 +153,6 @@ namespace tlang
             break;
 
         default:
-            // Skip spaces
-            while (std::isspace(*current) && current < source.end()) ++current;
-
             const auto [from, to] = Consume();
             const auto buffer = std::string_view(from, to);
             if (IsInteger(buffer))
@@ -168,6 +168,22 @@ namespace tlang
         }
 
         ++current;
+        return token;
+    }
+
+    Token Lexer::Peek()
+    {
+        // Store current position
+        const auto* originalCurrent = current;
+        const auto originalLine = line;
+
+        // Get the next token
+        auto token = Lex();
+
+        // Restore position
+        current = originalCurrent;
+        line = originalLine;
+
         return token;
     }
 } // htl

@@ -6,7 +6,6 @@
 
 #include <charconv>
 #include <optional>
-#include <bits/locale_facets_nonio.h>
 #include <llvm/Support/FormatVariadic.h>
 
 #define EXTRACT(varname, x) \
@@ -122,7 +121,7 @@ namespace tlang
     //     return FunctionDecl{*name.value().value, *args};
     // }
 
-    std::expected<InferrableTensorOrScalarTy, Diagnostics>
+    std::expected<InferableScalarTy, Diagnostics>
     Parser::ParseType(const Token& ty, Diagnostics& diagnostics)
     {
         if (IsTokenA(ty, kLiteral))
@@ -135,7 +134,7 @@ namespace tlang
                 if (ec != std::errc())
                     diagnostics.push_back(Diagnostic::InvalidType(ty, TYPE_PARSING_CONTEXT));
 
-                return dtype;
+                return InferableScalarTy(dtype);
             }
 
             if (type.starts_with("int"))
@@ -145,7 +144,7 @@ namespace tlang
                 if (ec != std::errc())
                     diagnostics.push_back(Diagnostic::InvalidType(ty, TYPE_PARSING_CONTEXT));
 
-                return dtype;
+                return InferableScalarTy(dtype);
             }
 
             if (type.starts_with("float"))
@@ -155,30 +154,53 @@ namespace tlang
                 if (ec != std::errc())
                     diagnostics.push_back(Diagnostic::InvalidType(ty, TYPE_PARSING_CONTEXT));
 
-                return dtype;
+                return InferableScalarTy(dtype);
             }
-
-            return TensorTy{{1}, FloatTy{32, 24, 8}};
         }
 
         return std::unexpected(diagnostics);
     }
 
+    std::expected<TensorTy, Diagnostics>
+    Parser::ParserTensorDefinition(const ScalarTy dtype, Diagnostics& diagnostics)
+    {
+        CONSUME(MatchTokenOrDiagnostic(lexer.Lex(), kSquareOpen, diagnostics, "Tensor declaration"));
+        CONSUME(MatchTokenOrDiagnostic(lexer.Lex(), kSquareClose, diagnostics, "Tensor declaration"));
+        return TensorTy{{}, dtype};
+    }
+
+
     std::expected<VariableDecl, Diagnostics>
     Parser::ParseVariableDecl(Token name, Diagnostics& diagnostics)
     {
-        EXTRACT(type, MatchTokenOrDiagnostic(lexer.Lex(), kLiteral, diagnostics, VARIABLE_DECLARATION_CONTEXT));
-        CONSUME(MatchTokenOrDiagnostic(lexer.Lex(), kAssign, diagnostics, VARIABLE_DECLARATION_CONTEXT));
-        EXTRACT(value,
-                MatchTokenOrDiagnostic(lexer.Lex(), {kInteger, kFloat}, diagnostics, VARIABLE_DECLARATION_CONTEXT));
-
-        if (const auto dtype = ParseType(type.value(), diagnostics); dtype.has_value())
+        EXTRACT(literal, MatchTokenOrDiagnostic(lexer.Lex(), kLiteral, diagnostics, VARIABLE_DECLARATION_CONTEXT));
+        if (const auto identifier = literal.value(); IsBuiltinTypeLiteral(identifier))
         {
-            return VariableDecl{
-                std::string_view(name.value.value()),
-                dtype.value(),
-                std::string_view(value.value().value.value())
-            };
+            if (const auto dtype = ParseType(identifier, diagnostics); dtype.has_value())
+            {
+                const auto scalarTy = dtype.value();
+                if (const auto next = lexer.Peek(); next.kind == kSquareOpen)
+                {
+                    if (scalarTy.NeedsInference())
+                        diagnostics.push_back(Diagnostic::InvalidType(literal.value(), VARIABLE_DECLARATION_CONTEXT));
+
+                    auto tensorTy = ParserTensorDefinition(scalarTy.Type(), diagnostics);
+                    return VariableDecl{name.value.value(), tensorTy.value(), std::nullopt};
+                }
+                else
+                {
+                    CONSUME(MatchTokenOrDiagnostic(lexer.Lex(), kAssign, diagnostics, VARIABLE_DECLARATION_CONTEXT));
+                    EXTRACT(value,
+                            MatchTokenOrDiagnostic(lexer.Lex(), {kInteger, kFloat}, diagnostics,
+                                VARIABLE_DECLARATION_CONTEXT));
+
+                    return VariableDecl{
+                        std::string_view(name.value.value()),
+                        InferableScalarTy{scalarTy},
+                        std::string_view(value.value().value.value())
+                    };
+                }
+            }
         }
 
         return std::unexpected(diagnostics);
@@ -191,7 +213,7 @@ namespace tlang
 
         return VariableDecl{
             std::string_view(name.value.value()),
-            InferTy{},
+            InferableScalarTy(),
             std::string_view(value.value().value.value())
         };
     }

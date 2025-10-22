@@ -4,8 +4,6 @@
 
 #include "Types.hpp"
 
-#include <expected>
-
 namespace tlang
 {
     size_t TensorTy::Rank() const

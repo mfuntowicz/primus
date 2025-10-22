@@ -57,6 +57,14 @@ namespace tlang
         */
         [[nodiscard]]
         Token Lex();
+
+        /**
+         * Lookahead lexer functionally, which will attempt to return any following token from the current position
+         * without actually moving the state of the lexer.
+         * @return 
+         */
+        [[nodiscard]]
+        Token Peek();
     };
 } // htl
 

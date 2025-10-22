@@ -33,8 +33,8 @@ namespace tlang
     struct VariableDecl
     {
         std::string_view name;
-        InferrableTensorOrScalarTy type;
-        std::string_view initializer;
+        std::variant<TensorTy, InferableScalarTy> type;
+        std::optional<std::string_view> initializer;
     };
 
     template <typename T>
@@ -77,15 +77,6 @@ namespace tlang
 namespace llvm
 {
     template <>
-    struct format_provider<tlang::InferTy>
-    {
-        static void format(const tlang::InferTy& T, raw_ostream& OS, StringRef Style)
-        {
-            OS << "[InferType]";
-        }
-    };
-
-    template <>
     struct format_provider<tlang::IntegerTy>
     {
         static void format(const tlang::IntegerTy& T, raw_ostream& OS, StringRef Style)
@@ -122,11 +113,26 @@ namespace llvm
     };
 
     template <>
+    struct format_provider<tlang::InferableScalarTy>
+    {
+        static void format(const tlang::InferableScalarTy& T, raw_ostream& OS, StringRef Style)
+        {
+            if (T.NeedsInference())
+                OS << "[InferType]";
+            else
+                std::visit([=, &OS](auto ty) { OS << formatv("{0}", ty); }, T.Type());
+        }
+    };
+
+    template <>
     struct format_provider<tlang::TensorTy>
     {
         static void format(const tlang::TensorTy& T, raw_ostream& OS, StringRef Style)
         {
-            OS << formatv("[Tensor{shape={0}]", T.shapes.begin(), T.shapes.end());
+            if (T.shapes.empty())
+                OS << "[Tensor[shape=[]]]";
+            else
+                OS << formatv("[Tensor[shape=({0})]]", make_range(T.shapes.begin(), T.shapes.end()));
         }
     };
 

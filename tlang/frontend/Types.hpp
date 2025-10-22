@@ -13,17 +13,6 @@
 namespace tlang
 {
     /**
-     * Helper type to represent a variable which type is not defined during parsing and should
-     * be inferred at a later stage.
-     */
-    struct InferTy
-    {
-        constexpr bool operator==(const InferTy&) const { return true; }
-    };
-
-    static_assert(sizeof(InferTy) == 1);
-
-    /**
      * Represent an unsigned, fixed-width, integer type,
      */
     struct IntegerTy
@@ -79,7 +68,48 @@ namespace tlang
      *
      */
     using TensorOrScalarTy = std::variant<ScalarTy, TensorTy>;
-    using InferrableTensorOrScalarTy = std::variant<InferTy, ScalarTy, TensorTy>;
+
+
+    /**
+     * Helper type to represent a variable which type is not defined during parsing and should
+     * be inferred at a later stage.
+     */
+    template <typename T>
+    struct InferableTy
+    {
+        InferableTy() : type(std::nullopt)
+        {
+        }
+
+        explicit InferableTy(T&& ty) : type(ty)
+        {
+        }
+
+        /**
+         *
+         *
+         * @return
+         */
+        bool NeedsInference() const
+        {
+            return !type.has_value();
+        }
+
+        /**
+         *
+         * @return
+         */
+        T Type() const
+        {
+            assert(!NeedsInference() && "No actual type defined, NeedInference() == true");
+            return type.value();
+        }
+
+    private:
+        std::optional<ScalarTy> type;
+    };
+
+    using InferableScalarTy = InferableTy<ScalarTy>;
 }
 
 #endif //PRIMUS_TYPES_HPP

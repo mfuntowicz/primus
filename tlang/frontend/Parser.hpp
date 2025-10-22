@@ -23,6 +23,8 @@ namespace tlang
     static std::string VARIABLE_DECLARATION_CONTEXT = "Error while parsing variable declaration";
     static std::string TYPE_PARSING_CONTEXT = "Error while parsing type declaration";
 
+    static std::array<std::string, 3> BUILTIN_TYPE_NAMES = {"float", "int", "uint"};
+
     namespace errors
     {
         /**
@@ -105,20 +107,18 @@ namespace tlang
     class Parser
     {
         Lexer lexer;
-
         /**
-         * @param diagnostics
-         * @return
-         */
-        // std::expected<FunctionDecl, llvm::SmallVector<errors::Diagnostic>>
-        // ParseFunctionDeclaration(llvm::SmallVector<errors::Diagnostic>& diagnostics);
-
-        /**
-         *
-         * @param diagnostics
-         * @return
-         */
-        // std::optional<FuncArgumentsDecl> ParseArgumentList(errors::Diagnostics& diagnostics);
+                *
+                * @param token
+                * @return
+                */
+        static constexpr bool IsBuiltinTypeLiteral(const Token& token)
+        {
+            return std::ranges::any_of(BUILTIN_TYPE_NAMES, [&](const std::string& type)
+            {
+                return token.value.value().starts_with(type);
+            });
+        }
 
         /**
          *
@@ -126,8 +126,11 @@ namespace tlang
          * @param diagnostics
          * @return
          */
-        static std::expected<InferrableTensorOrScalarTy, errors::Diagnostics>
+        static std::expected<InferableScalarTy, errors::Diagnostics>
         ParseType(const Token& ty, errors::Diagnostics& diagnostics);
+
+        std::expected<TensorTy, errors::Diagnostics>
+        ParserTensorDefinition(const ScalarTy dtype, errors::Diagnostics& diagnostics);
 
         /**
          * @param name
