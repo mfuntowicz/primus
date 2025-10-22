@@ -15,6 +15,12 @@
 #define CONSUME(x) \
     if (!(x)) return std::unexpected(diagnostics);
 
+#define TRY_PARSE(x) \
+    if (auto result = (x); result.has_value()) \
+        unit.AddDecl(std::move(*result)); \
+    else \
+        SkipToNextLine();
+
 
 using namespace tlang::errors;
 
@@ -75,6 +81,18 @@ namespace tlang
 
     void TranslationUnit::Visit() const
     {
+    }
+
+    void Parser::SkipToNextLine()
+    {
+        // Get the current line where error occurred
+        const auto errorLine = lexer.Peek().line;
+
+        // Consume tokens until we reach a different line or end of stream
+        Token token;
+        do {
+            token = lexer.Lex();
+        } while (token.kind != kEndOfStream && token.line == errorLine);
     }
 
 
@@ -230,13 +248,11 @@ namespace tlang
             case kLiteral:
                 if (const auto next = lexer.Lex(); next.kind == kColon)
                 {
-                    if (auto decl = ParseVariableDecl(token, diagnostics); decl.has_value())
-                        unit.AddDecl(std::move(*decl));
+                    TRY_PARSE(ParseVariableDecl(token, diagnostics));
                 }
                 else if (next.kind == kAssign)
                 {
-                    if (auto decl = ParseVariableDeclInferType(token, diagnostics); decl.has_value())
-                        unit.AddDecl(std::move(*decl));
+                    TRY_PARSE(ParseVariableDeclInferType(token, diagnostics));
                 }
                 break;
             }

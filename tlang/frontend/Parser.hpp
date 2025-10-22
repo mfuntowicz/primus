@@ -149,6 +149,11 @@ namespace tlang
         std::expected<VariableDecl, errors::Diagnostics>
         ParseVariableDeclInferType(Token name, errors::Diagnostics& diagnostics);
 
+        /**
+         * Skip tokens until the next line to recover from parsing errors
+         */
+        void SkipToNextLine();
+
     public:
         Parser(std::string_view source, const std::optional<std::string>& file);
         Parser(const llvm::MemoryBufferRef& buffer, const std::optional<std::string>& file);
