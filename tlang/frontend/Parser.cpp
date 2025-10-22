@@ -238,9 +238,11 @@ namespace tlang
                     if (auto decl = ParseVariableDeclInferType(token, diagnostics); decl.has_value())
                         unit.AddDecl(std::move(*decl));
                 }
+                break;
             }
         }
 
+        if (!diagnostics.empty()) return std::unexpected(diagnostics);
         return unit;
     }
 } // tlang
